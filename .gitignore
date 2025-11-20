@@ -1,0 +1,13 @@
+# Backend
+backend/tonish.db
+backend/tonish-backend
+
+# Frontend
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
+
+# General
+.DS_Store
+.env
+*.log
