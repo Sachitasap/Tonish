@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { taskAPI, notebookAPI } from '$lib/api';
 	import { BarChart3, Zap, CheckCircle, BookMarked, Kanban } from 'lucide-svelte';
 
@@ -31,6 +32,12 @@
 	let loading = $state(true);
 	
 	onMount(async () => {
+		// Check if user is authenticated
+		const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+		if (!token) {
+			goto('/login');
+			return;
+		}
 		try {
 			const [tasksData, notebooksData] = await Promise.all([
 				taskAPI.getAll(),
@@ -38,8 +45,13 @@
 			]);
 			tasks = tasksData;
 			notebooks = notebooksData;
-		} catch (error) {
+		} catch (error: any) {
 			console.error('Failed to load data:', error);
+			// If unauthorized, redirect to login
+			if (error.message?.includes('Authorization') || error.message?.includes('401')) {
+				localStorage.removeItem('authToken');
+				goto('/login');
+			}
 		} finally {
 			loading = false;
 		}
@@ -79,13 +91,13 @@
 				<div class="flex flex-wrap gap-3">
 					<a
 						href="/myflow"
-						class="inline-flex items-center gap-2 rounded-full bg-white/90 text-blue-700 px-5 py-3 text-base font-semibold shadow hover:bg-white"
+						class="touch-target inline-flex items-center gap-2 rounded-full bg-white/90 text-blue-700 px-6 py-3.5 text-base font-semibold shadow hover:bg-white touch-feedback focus-ring"
 					>
 						<Kanban size={18} /> Open MyFlow
 					</a>
 					<a
 						href="/myflowbook"
-						class="inline-flex items-center gap-2 rounded-full border border-white/60 px-5 py-3 text-base font-semibold text-white hover:bg-white/10"
+						class="touch-target inline-flex items-center gap-2 rounded-full border border-white/60 px-6 py-3.5 text-base font-semibold text-white hover:bg-white/10 touch-feedback focus-ring"
 					>
 						<BookMarked size={18} /> Open MyFlowBook
 					</a>
@@ -145,8 +157,8 @@
 					{#if todayTasks.length > 0}
 						<ul class="space-y-3">
 							{#each todayTasks as task}
-								<li class="flex items-center gap-3 rounded-2xl border border-gray-100 px-3 py-3">
-									<input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" aria-label={`Mark ${task.title} complete`} />
+								<li class="touch-target flex items-center gap-3 rounded-2xl border border-gray-100 px-4 py-3.5 touch-feedback">
+									<input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 touch-target" aria-label={`Mark ${task.title} complete`} />
 									<div class="flex-1">
 										<p class="text-base text-gray-800 font-medium">{task.title}</p>
 										{#if task.priority === 'high'}
@@ -173,7 +185,7 @@
 						<ul class="space-y-3">
 							{#each notebooks.slice(0, 5) as notebook}
 								<li>
-									<a href="/myflowbook/{notebook.id}" class="flex items-center justify-between rounded-2xl border border-purple-100 px-3 py-3 text-purple-800 hover:bg-purple-50">
+									<a href="/myflowbook/{notebook.id}" class="touch-target flex items-center justify-between rounded-2xl border border-purple-100 px-4 py-3.5 text-purple-800 hover:bg-purple-50 touch-feedback focus-ring">
 										<span class="font-medium">{notebook.name}</span>
 										<span aria-hidden="true">↗</span>
 									</a>
@@ -190,7 +202,7 @@
 				{#each quickLinks as card}
 					<a
 						href={card.href}
-						class={`rounded-3xl bg-gradient-to-br ${card.className} text-white p-8 flex flex-col gap-3 shadow-lg hover:scale-[1.01] transition`}
+						class={`touch-target rounded-3xl bg-gradient-to-br ${card.className} text-white p-8 flex flex-col gap-3 shadow-lg hover:scale-[1.01] transition touch-feedback focus-ring`}
 					>
 						<card.icon size={40} class="text-white/90" />
 						<h3 class="text-2xl font-bold">{card.title}</h3>

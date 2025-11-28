@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || '/api';
 
 let authToken: string | null = null;
 
@@ -36,7 +36,10 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 	});
 
 	if (!response.ok) {
-		const error = await response.json();
+		if (response.status === 401) {
+			throw new Error('Authorization header required');
+		}
+		const error = await response.json().catch(() => ({ error: 'Request failed' }));
 		throw new Error(error.error || 'Request failed');
 	}
 
@@ -67,6 +70,7 @@ export const authAPI = {
 // Task API
 export const taskAPI = {
 	getAll: () => fetchAPI('/tasks'),
+	getArchived: () => fetchAPI('/tasks/archived'),
 	getOne: (id: number) => fetchAPI(`/tasks/${id}`),
 	create: (data: any) =>
 		fetchAPI('/tasks', {
@@ -81,6 +85,18 @@ export const taskAPI = {
 	delete: (id: number) =>
 		fetchAPI(`/tasks/${id}`, {
 			method: 'DELETE'
+		}),
+	restore: (id: number) =>
+		fetchAPI(`/tasks/${id}/restore`, {
+			method: 'POST'
+		}),
+	permanentDelete: (id: number) =>
+		fetchAPI(`/tasks/${id}/permanent`, {
+			method: 'DELETE'
+		}),
+	archive: (id: number) =>
+		fetchAPI(`/tasks/${id}/archive`, {
+			method: 'POST'
 		}),
 	getByStatus: (status: string) => fetchAPI(`/tasks/status?status=${status}`),
 	getByQuadrant: (quadrant: string) => fetchAPI(`/tasks/quadrant/${quadrant}`)
@@ -124,4 +140,24 @@ export const pageAPI = {
 			method: 'DELETE'
 		}),
 	search: (query: string) => fetchAPI(`/pages/search?q=${encodeURIComponent(query)}`)
+};
+
+// AI API (Magic Wand)
+export const aiAPI = {
+	healthCheck: () => fetchAPI('/ai/health'),
+	enhanceTask: (task: any) =>
+		fetchAPI('/ai/enhance-task', {
+			method: 'POST',
+			body: JSON.stringify(task)
+		}),
+	breakdownTask: (task: any) =>
+		fetchAPI('/ai/breakdown-task', {
+			method: 'POST',
+			body: JSON.stringify(task)
+		}),
+	analyzeNotebook: (notebookId: number) => fetchAPI(`/ai/analyze-notebook/${notebookId}`),
+	generatePageIdeas: (notebookId: number) => fetchAPI(`/ai/generate-page-ideas/${notebookId}`),
+	summarizePage: (pageId: number) => fetchAPI(`/ai/summarize-page/${pageId}`),
+	generateTags: (pageId: number) => fetchAPI(`/ai/generate-tags/${pageId}`),
+	enhancePage: (pageId: number) => fetchAPI(`/ai/enhance-page/${pageId}`)
 };

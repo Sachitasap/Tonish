@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { notebookAPI, pageAPI } from '$lib/api';
 	import { Plus, Search, Pin, Download, Trash2, Edit2, Eye, BookMarked, Menu, X, Copy, Clipboard, ArrowLeft, MapPin, Tag, Book, Lightbulb } from 'lucide-svelte';
+	import PageMagicWand from '$lib/components/PageMagicWand.svelte';
 
 	type NotebookPage = {
 		id: number;
@@ -179,6 +180,24 @@
 		}
 	}
 	
+	async function handlePageUpdate(updatedPage: NotebookPage) {
+		try {
+			await pageAPI.update(updatedPage.id, updatedPage);
+			selectedPage = updatedPage;
+			await loadNotebook();
+			showNotification = true;
+			notificationMessage = 'Page updated with AI suggestions';
+			notificationType = 'success';
+			setTimeout(() => showNotification = false, 3000);
+		} catch (error) {
+			console.error('Failed to update page:', error);
+			showNotification = true;
+			notificationMessage = 'Failed to update page';
+			notificationType = 'error';
+			setTimeout(() => showNotification = false, 3000);
+		}
+	}
+	
 	function copyPageContent() {
 		if (!selectedPage) return;
 		
@@ -280,7 +299,8 @@
 	function exportToText() {
 		if (!notebook) return;
 		
-		let content = `${notebook.name}\n${'='.repeat(notebook.name.length)}\n\n`;
+		let content = `Export from Tonish ; By Sailendra\n${'='.repeat(38)}\n\n`;
+		content += `${notebook.name}\n${'='.repeat(notebook.name.length)}\n\n`;
 		
 		pages.forEach(page => {
 			content += `\n${page.title}\n${'-'.repeat(page.title.length)}\n\n`;
@@ -307,7 +327,8 @@
 	function exportToCSV() {
 		if (!notebook) return;
 		
-		let csv = 'Title,Content,Tags,Created,Updated\n';
+		let csv = '"Export from Tonish ; By Sailendra"\n\n';
+		csv += 'Title,Content,Tags,Created,Updated\n';
 		
 		pages.forEach(page => {
 			const title = `"${page.title.replace(/"/g, '""')}"`;
@@ -333,7 +354,8 @@
 	function exportToMarkdown() {
 		if (!notebook) return;
 		
-		let content = `# ${notebook.name}\n\n`;
+		let content = `# Export from Tonish ; By Sailendra\n\n`;
+		content += `# ${notebook.name}\n\n`;
 		
 		if (notebook.tags) {
 			content += `**Tags:** ${notebook.tags}\n\n`;
@@ -361,148 +383,165 @@
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
 	}
+	
+	function exportToPDF() {
+		if (!notebook) return;
+		
+		// Create a hidden container for the content
+		const printContainer = document.createElement('div');
+		printContainer.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 210mm; padding: 20mm; background: white; font-family: Arial, sans-serif;';
+		
+		let htmlContent = `
+			<div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #8b5cf6;">
+				<h1 style="color: #6366f1; font-size: 28px; margin: 0;">Export from Tonish ; By Sailendra</h1>
+			</div>
+			<h1 style="color: #1f2937; font-size: 32px; margin-bottom: 10px;">${notebook.name}</h1>
+		`;
+		
+		if (notebook.tags) {
+			htmlContent += `<p style="color: #6b7280; margin-bottom: 20px;"><strong>Tags:</strong> ${notebook.tags}</p>`;
+		}
+		
+		htmlContent += `<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />`;
+		
+		pages.forEach(page => {
+			htmlContent += `
+				<div style="margin-bottom: 30px; page-break-inside: avoid;">
+					<h2 style="color: #4f46e5; font-size: 24px; margin-bottom: 10px;">${page.title}</h2>
+					<div style="color: #374151; line-height: 1.6; white-space: pre-wrap;">${page.content}</div>
+					${page.tags ? `<p style="color: #9ca3af; font-size: 12px; margin-top: 10px;"><em>Tags: ${page.tags}</em></p>` : ''}
+					<p style="color: #9ca3af; font-size: 11px; margin-top: 5px;">Created: ${formatDateTime(page.created_at)} | Updated: ${formatDateTime(page.updated_at)}</p>
+					<hr style="border: none; border-top: 1px dashed #e5e7eb; margin: 20px 0;" />
+				</div>
+			`;
+		});
+		
+		printContainer.innerHTML = htmlContent;
+		document.body.appendChild(printContainer);
+		
+		// Print
+		const originalContent = document.body.innerHTML;
+		document.body.innerHTML = printContainer.innerHTML;
+		
+		// Set print styles
+		const style = document.createElement('style');
+		style.textContent = '@page { margin: 20mm; } body { margin: 0; }';
+		document.head.appendChild(style);
+		
+		window.print();
+		
+		// Restore original content
+		document.body.innerHTML = originalContent;
+		location.reload(); // Reload to restore event listeners
+	}
 </script>
 
 <div class="flex flex-col lg:flex-row min-h-screen">
 	<!-- Sidebar -->
-	<div class={`${sidebarCollapsed ? 'lg:w-16' : 'lg:w-80'} w-full bg-gradient-to-b from-purple-900 to-purple-800 text-white transition-all duration-300 lg:flex-shrink-0 overflow-hidden`}>
+	<div class={`${sidebarCollapsed ? 'lg:w-16' : 'lg:w-80'} w-full bg-white text-gray-900 transition-all duration-300 lg:flex-shrink-0 overflow-hidden border-r border-gray-200`}>
 		<div class="p-4 h-full flex flex-col">
 			<!-- Sidebar Header -->
-			<div class="flex justify-between items-center mb-6">
+			<div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-300">
 				{#if !sidebarCollapsed}
-					<h2 class="text-lg font-bold flex items-center">
-						<BookMarked size={20} class="mr-2" /> Navigation
-					</h2>
+					<h2 class="text-base font-bold text-gray-800">Pages</h2>
 				{/if}
 				<button
 					onclick={() => sidebarCollapsed = !sidebarCollapsed}
-					class="text-white hover:bg-purple-700 p-2 rounded transition"
-					title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+					class="text-gray-700 hover:bg-gray-200 p-2 rounded transition"
+					title={sidebarCollapsed ? 'Expand' : 'Collapse'}
 				>
 					{#if sidebarCollapsed}
-						<Menu size={20} />
+						<Menu size={18} />
 					{:else}
-						<X size={20} />
+						<X size={18} />
 					{/if}
 				</button>
 			</div>
 			
 			{#if !sidebarCollapsed}
 				<!-- Back to All Notebooks -->
-				<a href="/myflowbook" class="flex items-center space-x-2 p-3 bg-purple-700 rounded-lg hover:bg-purple-600 transition mb-4">
-					<ArrowLeft size={20} />
-					<span>All Notebooks</span>
+				<a href="/myflowbook" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded transition mb-3 text-sm font-medium text-blue-600">
+					<ArrowLeft size={16} />
+					Back
 				</a>
 				
 				<!-- Current Notebook Info -->
 				{#if notebook}
-					<div class="mb-6 p-4 bg-purple-700/50 rounded-lg">
-						<div class="flex items-start justify-between mb-2">
-							<h3 class="font-bold text-lg">{notebook.name}</h3>
+					<div class="mb-4 p-3 bg-gray-100 rounded border border-gray-300">
+						<div class="flex items-start justify-between gap-2 mb-2">
+							<h3 class="font-bold text-sm text-gray-900 truncate">{notebook.name}</h3>
 							<button
-							onclick={handleTogglePin}
-							class="hover:scale-110 transition"
-						>
-							<Pin size={18} class={notebook.is_pinned ? 'fill-current' : ''} />
+								onclick={handleTogglePin}
+								class="hover:scale-110 transition p-1 rounded hover:bg-gray-200"
+								title={notebook.is_pinned ? 'Unpin' : 'Pin'}
+							>
+								<Pin size={14} class={notebook.is_pinned ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'} />
 							</button>
 						</div>
-						<p class="text-purple-200 text-sm">{pages.length} pages</p>
-						{#if notebook.tags}
-							<div class="flex flex-wrap gap-1 mt-2">
-								{#each notebook.tags.split(',').filter((tag: string) => tag.trim()) as tag}
-									<span class="text-xs bg-purple-600 px-2 py-0.5 rounded">{tag.trim()}</span>
-								{/each}
-							</div>
-						{/if}
+						<p class="text-xs text-gray-600">{pages.length} {pages.length === 1 ? 'page' : 'pages'}</p>
 					</div>
 				{/if}
 				
-					<!-- Quick Actions -->
-				<div class="mb-6">
-					<h3 class="text-sm font-semibold text-purple-300 mb-3 uppercase">Quick Actions</h3>
-					<div class="space-y-2">
-						<button
-							onclick={() => showAddPage = !showAddPage}
-							class="w-full flex items-center space-x-2 p-2 bg-purple-700 rounded hover:bg-purple-600 transition"
-						>
-							<Plus size={16} />
-							<span>New Page</span>
-						</button>
-						<button
-							onclick={focusPageSearchInput}
-							class="w-full flex items-center space-x-2 p-2 bg-purple-700 rounded hover:bg-purple-600 transition"
-						>
-							<Search size={16} />
-							<span>Search</span>
-						</button>
-					</div>
-				</div>				<!-- Pages organized by status -->
-				<div class="flex-1 overflow-y-auto">
-					<h3 class="text-sm font-semibold text-purple-300 mb-3 uppercase">Pages</h3>
-					
-					<!-- Pinned Pages -->
-					{#if pages.filter(p => p.is_pinned).length > 0}
-						<div class="mb-4">
-							<h4 class="text-xs text-purple-400 mb-2 flex items-center">
-								<Pin size={12} class="mr-1" /> Pinned ({pages.filter(p => p.is_pinned).length})
-							</h4>
-							<div class="space-y-1">
+				<!-- Quick Actions -->
+				<div class="mb-4 pb-3 border-b border-gray-300">
+					<button
+						onclick={() => showAddPage = !showAddPage}
+						class="w-full flex items-center gap-2 p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium"
+					>
+						<Plus size={14} />
+						New Page
+					</button>
+				</div>
+				
+				<!-- Search -->
+				<div class="mb-4 relative">
+					<Search size={14} class="absolute left-2 top-2.5 text-gray-400" />
+					<input
+						type="text"
+						bind:value={searchQuery}
+						placeholder="Search..."
+						class="w-full pl-7 pr-2 py-1.5 bg-gray-100 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+				</div>
+				
+				<!-- Pages List -->
+				<div class="flex-1 overflow-y-auto space-y-2">
+					{#if searchQuery}
+						{@const filteredPages = pages.filter(p => 
+							p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							p.content.toLowerCase().includes(searchQuery.toLowerCase())
+						)}
+						{#each filteredPages as p}
+							<button
+								onclick={() => selectPage(p)}
+								class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-blue-600 text-white font-semibold' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
+							>
+								<div class="truncate">{p.title}</div>
+							</button>
+						{/each}
+					{:else}
+						{#if pages.filter(p => p.is_pinned).length > 0}
+							<div class="mb-3">
+								<h4 class="text-xs font-bold text-gray-600 mb-2 px-2">Pinned</h4>
 								{#each pages.filter(p => p.is_pinned) as p}
 									<button
 										onclick={() => selectPage(p)}
-										class={`w-full text-left p-2 rounded transition ${selectedPage?.id === p.id ? 'bg-yellow-500 text-purple-900' : 'bg-purple-700/50 hover:bg-purple-600'}`}
+										class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-yellow-200 font-semibold border border-yellow-400' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
 									>
-										<div class="font-medium text-sm truncate">{p.title}</div>
-										<div class="text-xs text-purple-200 truncate">{p.content?.substring(0, 30)}...</div>
+										<div class="truncate">{p.title}</div>
 									</button>
 								{/each}
 							</div>
-						</div>
-					{/if}
-					
-					<!-- Recent Pages (unpinned) -->
-					{#if pages.filter(p => !p.is_pinned).length > 0}
-						<div class="mb-4">
-							<h4 class="text-xs text-purple-400 mb-2">Recent Pages</h4>
-							<div class="space-y-1">
-								{#each pages.filter(p => !p.is_pinned).slice(0, 10) as p}
-									<button
-										onclick={() => selectPage(p)}
-										class={`w-full text-left p-2 rounded transition ${selectedPage?.id === p.id ? 'bg-purple-500' : 'bg-purple-700/50 hover:bg-purple-600'}`}
-									>
-										<div class="font-medium text-sm truncate">{p.title}</div>
-										<div class="text-xs text-purple-200 truncate">{p.content?.substring(0, 30)}...</div>
-									</button>
-								{/each}
-							</div>
-						</div>
-					{/if}
-					
-					<!-- Pages by Tag -->
-					{#if pagesByTag.size > 0}
-						<div class="mb-4">
-							<h4 class="text-xs text-purple-400 mb-2">By Tag</h4>
-							<div class="space-y-2">
-								{#each Array.from(pagesByTag.entries()) as [tag, tagPages]}
-									<details class="group">
-									<summary class="cursor-pointer p-2 bg-purple-700/50 rounded hover:bg-purple-600 transition text-sm flex justify-between items-center">
-										<span class="flex items-center gap-2"><Tag size={16} /> {tag}</span>
-										<span class="text-xs text-purple-300">{tagPages.length}</span>
-									</summary>
-										<div class="ml-2 mt-1 space-y-1">
-											{#each tagPages as p}
-												<button
-													onclick={() => selectPage(p)}
-													class={`w-full text-left p-1.5 rounded transition text-sm ${selectedPage?.id === p.id ? 'bg-purple-500' : 'bg-purple-700/30 hover:bg-purple-600'}`}
-												>
-													{p.title}
-												</button>
-											{/each}
-										</div>
-									</details>
-								{/each}
-							</div>
-						</div>
+						{/if}
+						
+						{#each pages.filter(p => !p.is_pinned) as p}
+							<button
+								onclick={() => selectPage(p)}
+								class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-blue-600 text-white font-semibold' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
+							>
+								<div class="truncate">{p.title}</div>
+							</button>
+						{/each}
 					{/if}
 				</div>
 			{:else}
@@ -551,6 +590,20 @@
 						</button>
 						<div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl hidden group-hover:block z-10 border border-gray-200 overflow-hidden">
 							<button
+								onclick={exportToPDF}
+								class="w-full text-left px-4 py-3 hover:bg-red-50 text-gray-900 flex items-center gap-2 transition border-b border-gray-100 font-semibold"
+							>
+								<Download size={16} class="text-red-600" />
+								Export as PDF
+							</button>
+							<button
+								onclick={exportToMarkdown}
+								class="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-900 flex items-center gap-2 transition border-b border-gray-100"
+							>
+								<Download size={16} />
+								Export as Markdown
+							</button>
+							<button
 								onclick={exportToText}
 								class="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-900 flex items-center gap-2 transition border-b border-gray-100"
 							>
@@ -559,17 +612,10 @@
 							</button>
 							<button
 								onclick={exportToCSV}
-								class="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-900 flex items-center gap-2 transition border-b border-gray-100"
-							>
-								<Download size={16} />
-								Export as CSV
-							</button>
-							<button
-								onclick={exportToMarkdown}
 								class="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-900 flex items-center gap-2 transition"
 							>
 								<Download size={16} />
-								Export as Markdown
+								Export as CSV
 							</button>
 						</div>
 					</div>
@@ -741,11 +787,19 @@
 							
 							{#if selectedPage.tags}
 								<div class="flex flex-wrap gap-2 pt-2">
-									{#each selectedPage.tags.split(',').filter((tag: string) => tag.trim()) as tag}
+									{#each selectedPage.tags.split(',').filter(t => t.trim()) as tag}
 										<span class="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">{tag.trim()}</span>
 									{/each}
 								</div>
 							{/if}
+						</div>
+						
+						<!-- AI Assistant Panel -->
+						<div class="p-6 border-b border-gray-200 bg-gradient-to-br from-purple-50 to-blue-50">
+							<PageMagicWand 
+								page={selectedPage} 
+								onPageUpdated={handlePageUpdate} 
+							/>
 						</div>
 						
 						<!-- Rich Text Editor / Viewer -->
@@ -906,5 +960,24 @@
 	:global(.prose br) {
 		margin-top: 0.5rem;
 		margin-bottom: 0.5rem;
+	}
+
+	/* Custom scrollbar for sidebar */
+	.custom-scrollbar::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-track {
+		background: rgba(139, 92, 246, 0.1);
+		border-radius: 10px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb {
+		background: rgba(139, 92, 246, 0.5);
+		border-radius: 10px;
+	}
+
+	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: rgba(139, 92, 246, 0.7);
 	}
 </style>

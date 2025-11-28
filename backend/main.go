@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"tonish/backend/ai"
 	"tonish/backend/database"
 	"tonish/backend/middleware"
 	"tonish/backend/routes"
@@ -14,6 +15,18 @@ func main() {
 	// Initialize database
 	database.Connect()
 	database.Migrate()
+	
+	// Initialize AI client
+	log.Println("Initializing AI client...")
+	ai.Initialize()
+	
+	// Check AI health
+	if err := ai.Client.HealthCheck(); err != nil {
+		log.Printf("Warning: AI service not available: %v", err)
+		log.Println("The app will run but AI features will be disabled")
+	} else {
+		log.Printf("AI service connected: %s (model: %s)", ai.Client.BaseURL, ai.Client.Model)
+	}
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -36,8 +49,8 @@ func main() {
 	routes.Setup(app)
 
 	// Start server
-	log.Println("Server starting on port 3000...")
-	if err := app.Listen(":3000"); err != nil {
+	log.Println("Server starting on port 8080...")
+	if err := app.Listen(":8080"); err != nil {
 		log.Fatal(err)
 	}
 }

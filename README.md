@@ -6,11 +6,18 @@ Tonish is a **full-stack web application** combining task management (MyFlow) an
 
 ### 🗂️ MyFlow (Task Management) - **COMPLETE**
 - ✅ Full CRUD operations (create, edit, delete tasks)
-- 📋 **Kanban board** with To Do, In Progress, and Done columns (horizontally scrollable on mobile)
+- 📋 **Dual task management**:
+  - **Kanban board** for personal projects (To Do, In Progress, Done columns, horizontally scrollable on mobile)
+  - **Eisenhower Matrix** for daily tasks & billing (Do First, Schedule, Delegate, Eliminate quadrants)
 - 🎯 Priority levels (Low, Medium, High) with visual indicators
 - 🏷️ Tags and categorization for easy organization
-- 📅 Due dates with overdue task highlighting
-- 🎲 **Eisenhower Matrix** for prioritization (Urgent/Important quadrants) with drag-and-drop support
+- 📅 **Always-visible due dates** with overdue task highlighting and calendar icons
+- ✏️ **Inline editing** – Edit any task's title, description, and due date directly in Kanban or Matrix view
+- 🎲 **Eisenhower Matrix enhancements**:
+  - Drag-and-drop between quadrants for flexibility
+  - **+ quick-add buttons** on each quadrant for rapid task entry
+  - Edit buttons on every matrix task
+  - **Auto-quadrant assignment** based on priority and due date
 - ⚡ Quick tasks for rapid entry without full form
 - 🔄 Smart status transitions between columns
 - 🎨 **Professional icon system** using lucide-svelte (100% emoji-free UI)
@@ -172,6 +179,7 @@ All endpoints use **JSON** request/response format. Base URL: `http://localhost:
 | DELETE | `/tasks/:id` | Delete task | Yes |
 | GET | `/tasks/status?status=todo` | Filter tasks by status (todo, in-progress, done) | Yes |
 | GET | `/tasks/quadrant/:quadrant` | Filter by Eisenhower quadrant | Yes |
+| GET | `/tasks/type?type=kanban` | Filter by task type (kanban for projects, matrix for daily tasks) | Yes |
 
 ### 📓 Notebooks (MyFlowBook)
 | Method | Endpoint | Description | Auth |
@@ -273,11 +281,12 @@ CREATE TABLE tasks (
   title TEXT NOT NULL,
   description TEXT,
   priority TEXT DEFAULT 'medium',  -- low, medium, high
-  status TEXT DEFAULT 'todo',       -- todo, in-progress, done
+  status TEXT DEFAULT 'todo',       -- todo, in-progress, done (for kanban tasks)
   tags TEXT,                        -- JSON array as string
   due_date DATETIME,
   is_quick_task BOOLEAN DEFAULT 0,
-  quadrant TEXT,                    -- Eisenhower: urgent-important, etc.
+  quadrant TEXT,                    -- Eisenhower: urgent-important, not-urgent-important, urgent-not-important, not-urgent-not-important
+  task_type TEXT DEFAULT 'kanban',  -- kanban (personal projects) or matrix (daily tasks/billing)
   user_id INTEGER,                  -- Foreign key to users
   created_at DATETIME,
   updated_at DATETIME
@@ -340,6 +349,10 @@ CREATE TABLE pages (
 
 ### ✅ Completed Features
 - [x] Task management (MyFlow) – full CRUD with Kanban & Eisenhower Matrix
+- [x] **Task type separation** – Kanban for personal projects, Eisenhower Matrix for daily tasks & billing
+- [x] **Inline task editing** – Edit title, description, and due dates directly in list/matrix views
+- [x] **Always-visible due dates** – Calendar icons and formatted dates on all tasks
+- [x] **Eisenhower quick-add** – + buttons on each matrix quadrant for rapid task creation
 - [x] **Drag-and-drop** – Move tasks between Eisenhower Matrix quadrants
 - [x] Note-taking (MyFlowBook) – notebooks, pages, rich-text editing
 - [x] Search functionality – full-text across pages

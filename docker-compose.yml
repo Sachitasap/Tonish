@@ -4,24 +4,33 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "${HOST_IP:-192.168.5.10}:${BACKEND_PORT:-8080}:8080"
     volumes:
-      - ./backend/tonish.db:/root/tonish.db
+      - tonish-db:/root
+    env_file:
+      - .env
     environment:
-      - PORT=3000
+      - PORT=${BACKEND_PORT:-8080}
+      - OLLAMA_URL=${OLLAMA_URL:-http://192.168.5.10:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5-coder:3b}
     restart: unless-stopped
     networks:
       - tonish-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3001:4173"
+      - "${HOST_IP:-192.168.5.10}:${FRONTEND_PORT:-5173}:5173"
+    env_file:
+      - .env
     environment:
-      - PORT=4173
+      - PORT=${FRONTEND_PORT:-5173}
       - HOST=0.0.0.0
+      - PUBLIC_API_URL=${BACKEND_URL:-http://192.168.5.10:8080}/api
     depends_on:
       - backend
     restart: unless-stopped
@@ -31,3 +40,6 @@ services:
 networks:
   tonish-network:
     driver: bridge
+
+volumes:
+  tonish-db:

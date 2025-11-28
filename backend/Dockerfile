@@ -26,6 +26,6 @@ WORKDIR /root/
 # Copy the binary
 COPY --from=builder /app/tonish-backend .
 
-EXPOSE 3000
+EXPOSE 8080
 
 CMD ["./tonish-backend"]

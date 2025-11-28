@@ -7,7 +7,7 @@ import (
 
 func CORS() fiber.Handler {
 	return cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173,http://localhost:4173", // SvelteKit dev and preview
+		AllowOrigins:     "http://localhost:5173,http://localhost:4173,http://192.168.5.10:5173,http://192.168.5.10:4173",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 		AllowCredentials: true,
