@@ -141,23 +141,3 @@ export const pageAPI = {
 		}),
 	search: (query: string) => fetchAPI(`/pages/search?q=${encodeURIComponent(query)}`)
 };
-
-// AI API (Magic Wand)
-export const aiAPI = {
-	healthCheck: () => fetchAPI('/ai/health'),
-	enhanceTask: (task: any) =>
-		fetchAPI('/ai/enhance-task', {
-			method: 'POST',
-			body: JSON.stringify(task)
-		}),
-	breakdownTask: (task: any) =>
-		fetchAPI('/ai/breakdown-task', {
-			method: 'POST',
-			body: JSON.stringify(task)
-		}),
-	analyzeNotebook: (notebookId: number) => fetchAPI(`/ai/analyze-notebook/${notebookId}`),
-	generatePageIdeas: (notebookId: number) => fetchAPI(`/ai/generate-page-ideas/${notebookId}`),
-	summarizePage: (pageId: number) => fetchAPI(`/ai/summarize-page/${pageId}`),
-	generateTags: (pageId: number) => fetchAPI(`/ai/generate-tags/${pageId}`),
-	enhancePage: (pageId: number) => fetchAPI(`/ai/enhance-page/${pageId}`)
-};

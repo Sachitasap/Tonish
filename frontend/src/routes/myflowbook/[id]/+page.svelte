@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { notebookAPI, pageAPI } from '$lib/api';
 	import { Plus, Search, Pin, Download, Trash2, Edit2, Eye, BookMarked, Menu, X, Copy, Clipboard, ArrowLeft, MapPin, Tag, Book, Lightbulb } from 'lucide-svelte';
-	import PageMagicWand from '$lib/components/PageMagicWand.svelte';
 
 	type NotebookPage = {
 		id: number;
@@ -175,24 +174,6 @@
 			console.error('Failed to save content:', error);
 			showNotification = true;
 			notificationMessage = 'Failed to save content';
-			notificationType = 'error';
-			setTimeout(() => showNotification = false, 3000);
-		}
-	}
-	
-	async function handlePageUpdate(updatedPage: NotebookPage) {
-		try {
-			await pageAPI.update(updatedPage.id, updatedPage);
-			selectedPage = updatedPage;
-			await loadNotebook();
-			showNotification = true;
-			notificationMessage = 'Page updated with AI suggestions';
-			notificationType = 'success';
-			setTimeout(() => showNotification = false, 3000);
-		} catch (error) {
-			console.error('Failed to update page:', error);
-			showNotification = true;
-			notificationMessage = 'Failed to update page';
 			notificationType = 'error';
 			setTimeout(() => showNotification = false, 3000);
 		}
@@ -792,14 +773,6 @@
 									{/each}
 								</div>
 							{/if}
-						</div>
-						
-						<!-- AI Assistant Panel -->
-						<div class="p-6 border-b border-gray-200 bg-gradient-to-br from-purple-50 to-blue-50">
-							<PageMagicWand 
-								page={selectedPage} 
-								onPageUpdated={handlePageUpdate} 
-							/>
 						</div>
 						
 						<!-- Rich Text Editor / Viewer -->

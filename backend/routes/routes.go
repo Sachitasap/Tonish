@@ -46,12 +46,4 @@ func Setup(app *fiber.App) {
 	pages.Post("/", handlers.CreatePage)
 	pages.Put("/:id", handlers.UpdatePage)
 	pages.Delete("/:id", handlers.DeletePage)
-	
-	// AI routes (Magic Wand)
-	aiRoutes := api.Group("/ai")
-	aiRoutes.Get("/health", handlers.AIHealthCheck)
-	aiRoutes.Post("/enhance-task", handlers.EnhanceTask)
-	aiRoutes.Post("/breakdown-task", handlers.BreakdownTask)
-	aiRoutes.Get("/analyze-notebook/:id", handlers.AnalyzeNotebook)
-	aiRoutes.Get("/generate-page-ideas/:id", handlers.GeneratePageIdeas)
 }
