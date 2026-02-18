@@ -555,7 +555,7 @@
 			<div class="flex justify-between items-center">
 				<div class="flex items-center gap-3">
 					{#if notebook}
-						<h1 class="text-3xl font-bold text-gray-900">{notebook.name}</h1>
+						<h1 class="text-xl sm:text-2xl font-bold text-gray-900">{notebook.name}</h1>
 					{/if}
 				</div>
 				<div class="flex flex-wrap gap-2 items-center">
@@ -634,7 +634,7 @@
 			<!-- Add Page Form -->
 			{#if showAddPage}
 				<div class="bg-white rounded-lg shadow-lg border border-purple-100 p-6 animate-scale-in">
-					<h2 class="text-2xl font-bold text-gray-900 mb-6">Create New Page</h2>
+					<h2 class="text-xl font-bold text-gray-900 mb-4">Create New Page</h2>
 					<form onsubmit={(e) => { e.preventDefault(); handleAddPage(); }} class="space-y-4">
 						<div>
 							<label for={addPageTitleId} class="block text-sm font-semibold text-gray-700 mb-2">Page Title</label>

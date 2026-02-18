@@ -290,7 +290,7 @@
 	);
 </script>
 
-<div class="min-h-screen bg-gray-950 p-4 md:p-8">
+<div class="min-h-screen bg-gray-950 p-3 sm:p-4 md:p-6">
 	<div class="max-w-7xl mx-auto space-y-6">
 		<!-- Header -->
 		<div class="flex items-center justify-between">
@@ -299,7 +299,7 @@
 					<CalendarIcon size={32} class="text-white" />
 				</div>
 				<div>
-					<h1 class="text-3xl md:text-4xl font-bold text-white">Task Calendar</h1>
+					<h1 class="text-2xl sm:text-3xl font-bold text-white">Task Calendar</h1>
 					<p class="text-gray-400">View and manage your tasks by date</p>
 				</div>
 			</div>
@@ -330,7 +330,7 @@
 				<div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-3xl shadow-xl ring-1 ring-gray-800 p-6 md:p-8">
 					<!-- Calendar Header -->
 					<div class="flex items-center justify-between mb-6">
-						<h2 class="text-2xl font-bold text-white">
+						<h2 class="text-lg sm:text-xl font-bold text-white">
 							{monthNames[currentMonth]} {currentYear}
 						</h2>
 						<div class="flex items-center gap-2">
@@ -606,7 +606,7 @@
 			<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 				<div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
 					<div class="flex items-center justify-between mb-4">
-						<h3 class="text-xl font-bold text-white">Add New Task</h3>
+						<h3 class="text-lg font-bold text-white">Add New Task</h3>
 						<button
 							onclick={closeAddTaskModal}
 							class="min-w-[44px] min-h-[44px] p-2.5 hover:bg-gray-800 active:bg-gray-700 rounded-lg transition text-gray-400 touch-manipulation flex items-center justify-center"

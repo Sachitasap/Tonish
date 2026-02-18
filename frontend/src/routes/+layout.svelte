@@ -135,20 +135,20 @@
 	{#if !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 		<nav class="bg-gray-900 shadow-sm border-b border-gray-800 sticky top-0 z-30 touch-pan-y">
 			<div class="app-shell">
-				<div class="flex items-center justify-between h-16">
-					<a href="/" class="flex items-center gap-3 py-2 -ml-2 px-2 rounded-lg hover:bg-gray-800 transition-colors touch-manipulation group">
-						<img src="/tonish-logo.svg" alt="Tonish" class="h-10 w-auto group-hover:scale-105 transition-transform" />
-						<span class="hidden xl:block text-xl font-bold text-white">Tonish</span>
+				<div class="flex items-center justify-between h-14">
+					<a href="/" class="flex items-center gap-2 py-1.5 -ml-2 px-2 rounded-lg hover:bg-gray-800 transition-colors touch-manipulation group">
+						<img src="/tonish-logo.svg" alt="Tonish" class="h-8 w-auto group-hover:scale-105 transition-transform" />
+						<span class="hidden xl:block text-lg font-bold text-white">Tonish</span>
 					</a>
-					<div class="hidden md:flex items-center space-x-6">
+					<div class="hidden md:flex items-center space-x-4">
 						{#each navLinks as link}
 							<a
 								href={link.href}
-								class={`touch-target inline-flex items-center gap-2 px-4 py-3 rounded-full text-sm font-medium transition touch-feedback ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/')
+								class={`touch-target inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition touch-feedback ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/')
 									? 'bg-blue-900 text-blue-300'
 									: 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}
 							>
-								<link.icon size={18} />
+								<link.icon size={16} />
 								<span>{link.label}</span>
 							</a>
 						{/each}
@@ -166,22 +166,22 @@
 		</nav>
 	{/if}
 
-	<main class="app-shell py-4 pb-28 md:pb-12">
+	<main class="app-shell py-3 pb-24 md:pb-10">
 		{@render children()}
 	</main>
 
 	{#if !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 		<div class="md:hidden fixed bottom-0 inset-x-0 bg-gray-900 border-t border-gray-800 shadow-lg z-40 safe-bottom">
-			<nav class="flex justify-around items-stretch py-2">
+			<nav class="flex justify-around items-stretch py-1.5">
 				{#each navLinks as link}
 					<a
 						href={link.href}
-						class={`touch-target-large flex flex-col items-center justify-center text-xs font-medium gap-1 px-3 touch-feedback no-select ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/')
+						class={`touch-target-large flex flex-col items-center justify-center text-xs font-medium gap-0.5 px-2 touch-feedback no-select ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/')
 							? 'text-blue-400'
 							: 'text-gray-400'}`}
 					>
 						<div class="text-lg" aria-hidden="true">
-							<link.icon size={22} />
+							<link.icon size={20} />
 						</div>
 						<span class="text-[10px]">{link.label}</span>
 					</a>

@@ -163,13 +163,13 @@
 	<title>LookBack - Tonish</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-950 p-6">
+<div class="min-h-screen bg-gray-950 p-3 sm:p-4">
 	<div class="max-w-7xl mx-auto">
 		<!-- Header -->
-		<div class="mb-8">
+		<div class="mb-4 sm:mb-6">
 			<div class="flex items-center gap-3 mb-2">
-				<Archive class="text-purple-400" size={32} />
-				<h1 class="text-4xl font-bold text-white">LookBack</h1>
+				<Archive class="text-purple-400" size={24} />
+				<h1 class="text-2xl sm:text-3xl font-bold text-white">LookBack</h1>
 			</div>
 		</div>
 

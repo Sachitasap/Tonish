@@ -448,7 +448,7 @@
 <div class="space-y-6">
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div class="flex items-center gap-3">
-			<h1 class="text-3xl font-bold text-white">MyFlow</h1>
+			<h1 class="text-xl sm:text-2xl font-bold text-white">MyFlow</h1>
 		</div>
 		{#if activeView === 'kanban'}
 			<div class="flex flex-wrap gap-3">
@@ -510,7 +510,7 @@
 	<!-- Quick Task Input -->
 	{#if showKanbanQuickTask && activeView === 'kanban'}
 		<div class="bg-gray-800 rounded-lg shadow p-5">
-			<h2 class="text-lg font-semibold mb-4 inline-flex items-center gap-2 text-white"><Zap size={22} /> Quick Task</h2>
+			<h2 class="text-base font-semibold mb-3 inline-flex items-center gap-2 text-white"><Zap size={18} /> Quick Task</h2>
 			<form onsubmit={(e) => { e.preventDefault(); handleQuickTask(); }} class="flex flex-col gap-3 sm:flex-row">
 				<input
 					type="text"
@@ -539,7 +539,7 @@
 
 	{#if showMatrixQuickTask && activeView === 'matrix'}
 		<div class="bg-gray-800 rounded-lg shadow p-5">
-			<h2 class="text-lg font-semibold mb-4 inline-flex items-center gap-2 text-white"><Zap size={22} /> Matrix Quick Task</h2>
+			<h2 class="text-base font-semibold mb-3 inline-flex items-center gap-2 text-white"><Zap size={18} /> Matrix Quick Task</h2>
 			<form onsubmit={(e) => { e.preventDefault(); handleMatrixQuickTask(); }} class="grid gap-4 md:grid-cols-3">
 				<input
 					type="text"
@@ -576,7 +576,7 @@
 	
 	{#if showAddTask && activeView === 'kanban'}
 		<div class="bg-gray-800 rounded-lg shadow p-6">
-			<h2 class="text-xl font-semibold mb-6 text-white">New Task</h2>
+			<h2 class="text-lg font-semibold mb-4 text-white">New Task</h2>
 			<form onsubmit={(e) => { e.preventDefault(); handleAddTask(); }} class="space-y-4">
 				<div>
 					<label for={newTaskTypeId} class="block text-sm font-medium text-gray-300 mb-2">Task Type</label>
@@ -693,7 +693,7 @@
 			<div class="flex gap-4 px-4 sm:px-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6">
 			<!-- To Do Column -->
 			<section class="bg-gray-800 rounded-2xl p-4 min-w-[280px] snap-start md:min-w-0">
-				<h2 class="text-lg font-semibold mb-4 text-gray-300 inline-flex items-center gap-2"><Circle size={18} /> To Do ({todoTasks.length})</h2>
+				<h2 class="text-base font-semibold mb-3 text-gray-300 inline-flex items-center gap-2"><Circle size={16} /> To Do ({todoTasks.length})</h2>
 				<div class="space-y-3">
 					{#each todoTasks as task}
 						{@const badgeClass = getPriorityBadgeClass(task.priority)}
@@ -783,7 +783,7 @@
 			
 			<!-- In Progress Column -->
 			<section class="bg-blue-950 rounded-2xl p-4 border-2 border-blue-900 min-w-[280px] snap-start md:min-w-0">
-				<h2 class="text-lg font-semibold mb-4 text-blue-200 inline-flex items-center gap-2"><Zap size={18} /> In Progress ({inProgressTasks.length})</h2>
+				<h2 class="text-base font-semibold mb-3 text-blue-200 inline-flex items-center gap-2"><Zap size={16} /> In Progress ({inProgressTasks.length})</h2>
 				<div class="space-y-3">
 					{#each inProgressTasks as task}
 						{@const badgeClass = getPriorityBadgeClass(task.priority)}
@@ -880,7 +880,7 @@
 			
 			<!-- Done Column -->
 			<section class="bg-green-950 rounded-2xl p-4 border-2 border-green-900 min-w-[280px] snap-start md:min-w-0">
-				<h2 class="text-lg font-semibold mb-4 text-green-200 inline-flex items-center gap-2"><CheckCircle size={18} /> Done ({doneTasks.length})</h2>
+				<h2 class="text-base font-semibold mb-3 text-green-200 inline-flex items-center gap-2"><CheckCircle size={16} /> Done ({doneTasks.length})</h2>
 				<div class="space-y-3">
 					{#each doneTasks as task}
 						{#if editingTaskId === task.id && editingTask}

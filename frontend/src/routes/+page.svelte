@@ -112,10 +112,10 @@
 <div class="min-h-screen bg-gray-950">
 	<div class="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
 		<!-- Header -->
-		<div class="flex items-center justify-between py-6">
+		<div class="flex items-center justify-between py-3 sm:py-4">
 			<div class="flex items-center gap-3">
 				<div>
-					<h1 class="text-2xl font-bold text-white">Dashboard</h1>
+					<h1 class="text-lg sm:text-xl font-bold text-white">Dashboard</h1>
 				</div>
 			</div>
 		</div>
