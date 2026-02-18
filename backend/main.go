@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"tonish/backend/database"
 	"tonish/backend/middleware"
 	"tonish/backend/routes"
@@ -14,6 +15,8 @@ func main() {
 	// Initialize database
 	database.Connect()
 	database.Migrate()
+	database.NormalizeTaskTypes()
+	database.SeedDefaultUser()
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -27,8 +30,8 @@ func main() {
 	// Health check
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"message": "Tonish API is running",
-			"version": "1.0",
+			"message": "Tonish API is running - REGISTRATION DISABLED",
+			"version": "1.0.1",
 		})
 	})
 
@@ -36,8 +39,13 @@ func main() {
 	routes.Setup(app)
 
 	// Start server
-	log.Println("Server starting on port 8080...")
-	if err := app.Listen(":8080"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server starting on port %s...\n", port)
+	if err := app.Listen(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }

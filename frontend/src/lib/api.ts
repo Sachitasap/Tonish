@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || '/api';
+// Use relative path - the server-side proxy will forward to backend
+const API_BASE_URL = '/api';
 
 let authToken: string | null = null;
 

@@ -24,12 +24,16 @@ func Setup(app *fiber.App) {
 	// Task routes
 	tasks := api.Group("/tasks")
 	tasks.Get("/", handlers.GetAllTasks)
-	tasks.Get("/:id", handlers.GetTask)
-	tasks.Post("/", handlers.CreateTask)
-	tasks.Put("/:id", handlers.UpdateTask)
-	tasks.Delete("/:id", handlers.DeleteTask)
+	tasks.Get("/archived", handlers.GetArchivedTasks)
 	tasks.Get("/status", handlers.GetTasksByStatus)
 	tasks.Get("/quadrant/:quadrant", handlers.GetTasksByQuadrant)
+	tasks.Post("/", handlers.CreateTask)
+	tasks.Post("/:id/archive", handlers.ArchiveTask)
+	tasks.Post("/:id/restore", handlers.RestoreTask)
+	tasks.Delete("/:id/permanent", handlers.PermanentDeleteTask)
+	tasks.Get("/:id", handlers.GetTask)
+	tasks.Put("/:id", handlers.UpdateTask)
+	tasks.Delete("/:id", handlers.DeleteTask)
 	
 	// Notebook routes
 	notebooks := api.Group("/notebooks")

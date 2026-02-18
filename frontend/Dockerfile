@@ -12,6 +12,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Accept build arguments for environment variables
+ARG PUBLIC_API_URL=http://localhost:8080/api
+ENV PUBLIC_API_URL=$PUBLIC_API_URL
+
 # Build the application
 RUN npm run build
 
@@ -25,9 +29,9 @@ COPY --from=builder /app/build ./build
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
-ENV PORT=4173
+ENV PORT=5173
 ENV HOST=0.0.0.0
 
-EXPOSE 4173
+EXPOSE 5173
 
 CMD ["node", "build"]

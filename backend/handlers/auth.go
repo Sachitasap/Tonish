@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"os"
 	"time"
 	"tonish/backend/database"
 	"tonish/backend/models"
@@ -10,7 +11,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var jwtSecret = []byte("your-secret-key-change-in-production")
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("JWT_SECRET environment variable is required")
+	}
+	return []byte(secret)
+}
 
 type LoginRequest struct {
 	Email    string `json:"email"`
@@ -25,46 +32,9 @@ type RegisterRequest struct {
 
 // Register creates a new user account
 func Register(c *fiber.Ctx) error {
-	req := new(RegisterRequest)
-	
-	if err := c.BodyParser(req); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
-	}
-	
-	// Check if user already exists
-	var existingUser models.User
-	if err := database.DB.Where("email = ?", req.Email).First(&existingUser).Error; err == nil {
-		return c.Status(409).JSON(fiber.Map{
-			"error": "User already exists",
-		})
-	}
-	
-	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": "Failed to hash password",
-		})
-	}
-	
-	// Create user
-	user := models.User{
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Name:     req.Name,
-	}
-	
-	database.DB.Create(&user)
-	
-	return c.Status(201).JSON(fiber.Map{
-		"message": "User created successfully",
-		"user": fiber.Map{
-			"id":    user.ID,
-			"email": user.Email,
-			"name":  user.Name,
-		},
+	// Registration is currently disabled
+	return c.Status(403).JSON(fiber.Map{
+		"error": "User registration is currently disabled",
 	})
 }
 
@@ -100,7 +70,7 @@ func Login(c *fiber.Ctx) error {
 		"exp":     time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 days
 	})
 	
-	tokenString, err := token.SignedString(jwtSecret)
+	tokenString, err := token.SignedString(getJWTSecret())
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Failed to generate token",

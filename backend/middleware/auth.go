@@ -1,13 +1,20 @@
 package middleware
 
 import (
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("your-secret-key-change-in-production")
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("JWT_SECRET environment variable is required")
+	}
+	return []byte(secret)
+}
 
 func AuthRequired(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
@@ -33,7 +40,7 @@ func AuthRequired(c *fiber.Ctx) error {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fiber.ErrUnauthorized
 		}
-		return jwtSecret, nil
+		return getJWTSecret(), nil
 	})
 	
 	if err != nil || !token.Valid {

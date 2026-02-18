@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { notebookAPI, pageAPI } from '$lib/api';
-	import { Plus, Search, Pin, Download, Trash2, Edit2, Eye, BookMarked, Menu, X, Copy, Clipboard, ArrowLeft, MapPin, Tag, Book, Lightbulb } from 'lucide-svelte';
+	import { notebookAPI, pageAPI } from '$lib/api';	import TonishLogo from '$lib/components/TonishLogo.svelte';	import { Plus, Search, Pin, Download, Trash2, Edit2, Eye, Menu, X, Copy, ArrowLeft, Tag, Book, Lightbulb } from 'lucide-svelte';
 
 	type NotebookPage = {
 		id: number;
@@ -554,7 +553,8 @@
 			
 			<!-- Header -->
 			<div class="flex justify-between items-center">
-				<div class="flex items-center space-x-4">
+				<div class="flex items-center gap-3">
+					<TonishLogo size="md" variant="icon" />
 					{#if notebook}
 						<h1 class="text-3xl font-bold text-gray-900">{notebook.name}</h1>
 					{/if}
