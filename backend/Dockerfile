@@ -6,15 +6,15 @@ WORKDIR /app
 # Install build dependencies for SQLite
 RUN apk add --no-cache gcc musl-dev sqlite-dev
 
-# Copy go mod files
-COPY go.mod go.sum ./
+# Copy source code
+COPY . .
+
+# Update go.sum and download dependencies
+RUN go mod tidy
 RUN go mod download
 
 # Invalidate cache for source code changes
 ARG CACHEBUST=1
-
-# Copy source code
-COPY . .
 
 # Build the application with CGO enabled for SQLite
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o tonish-backend main.go

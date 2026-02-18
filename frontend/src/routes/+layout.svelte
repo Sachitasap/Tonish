@@ -2,7 +2,8 @@
 	import "../app.css";
 	import { page } from '$app/stores';
 	import { LayoutGrid, Kanban, BookOpen, Archive, Calendar } from 'lucide-svelte';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { wsService } from '$lib/websocket';
 
 	let { children } = $props();
 	let isKioskMode = $state(false);
@@ -23,6 +24,9 @@
 
 	// Kiosk Mode functionality
 	onMount(() => {
+		// Initialize WebSocket connection
+		wsService.connect();
+
 		// Check for kiosk mode query parameter or localStorage
 		const urlParams = new URLSearchParams(window.location.search);
 		const kioskParam = urlParams.get('kiosk');
@@ -61,6 +65,7 @@
 		window.addEventListener('keypress', resetIdleTimer);
 
 		return () => {
+			wsService.disconnect();
 			window.removeEventListener('keydown', handleKeyDown);
 			window.removeEventListener('popstate', handlePopState);
 			window.removeEventListener('mousedown', resetIdleTimer);

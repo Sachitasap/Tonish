@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { taskAPI } from '$lib/api';
+	import { wsService } from '$lib/websocket';
 	import TonishLogo from '$lib/components/TonishLogo.svelte';
 	import { Plus, Zap, LayoutGrid, GridIcon, Circle, CheckCircle, Edit2, Trash, ArrowLeft, ArrowRight, AlertCircle, Lightbulb, Calendar, Users, CalendarDays } from 'lucide-svelte';
 
@@ -90,6 +91,34 @@
 			return;
 		}
 		await loadTasks();
+
+		// Set up WebSocket listeners for real-time updates
+		const handleTaskUpdate = (task: Task) => {
+			const index = tasks.findIndex(t => t.id === task.id);
+			if (index >= 0) {
+				tasks[index] = task;
+			}
+		};
+
+		const handleTaskCreate = (task: Task) => {
+			if (!task.is_archived && !task.deleted_at) {
+				tasks = [...tasks, task];
+			}
+		};
+
+		const handleTaskDelete = (data: { id: string }) => {
+			tasks = tasks.filter(t => t.id !== parseInt(data.id));
+		};
+
+		wsService.on('task_update', handleTaskUpdate);
+		wsService.on('task_create', handleTaskCreate);
+		wsService.on('task_delete', handleTaskDelete);
+
+		return () => {
+			wsService.off('task_update', handleTaskUpdate);
+			wsService.off('task_create', handleTaskCreate);
+			wsService.off('task_delete', handleTaskDelete);
+		};
 	});
 
 	function setActiveView(view: 'kanban' | 'matrix') {

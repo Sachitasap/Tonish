@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { notebookAPI } from '$lib/api';
+	import { wsService } from '$lib/websocket';
 	import TonishLogo from '$lib/components/TonishLogo.svelte';
 	import { Plus, Search, Pin, Menu, X, Trash2, Home } from 'lucide-svelte';
 
@@ -35,7 +36,32 @@
 	const pinnedNotebooks = $derived(filteredNotebooks.filter((n) => n.is_pinned));
 	const regularNotebooks = $derived(filteredNotebooks.filter((n) => !n.is_pinned));
 	
-	onMount(loadNotebooks);
+	onMount(() => {
+		loadNotebooks();
+
+		// Set up WebSocket listeners for real-time updates
+		const handleNotebookUpdate = () => {
+			loadNotebooks();
+		};
+
+		const handleNotebookCreate = () => {
+			loadNotebooks();
+		};
+
+		const handleNotebookDelete = () => {
+			loadNotebooks();
+		};
+
+		wsService.on('notebook_update', handleNotebookUpdate);
+		wsService.on('notebook_create', handleNotebookCreate);
+		wsService.on('notebook_delete', handleNotebookDelete);
+
+		return () => {
+			wsService.off('notebook_update', handleNotebookUpdate);
+			wsService.off('notebook_create', handleNotebookCreate);
+			wsService.off('notebook_delete', handleNotebookDelete);
+		};
+	});
 	
 	async function loadNotebooks() {
 		// Check if user is authenticated

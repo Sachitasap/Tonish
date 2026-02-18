@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/gofiber/websocket/v2 v2.2.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	golang.org/x/crypto v0.21.0
 	gorm.io/driver/sqlite v1.5.7

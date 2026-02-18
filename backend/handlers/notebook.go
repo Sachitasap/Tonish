@@ -3,6 +3,7 @@ package handlers
 import (
 	"tonish/backend/database"
 	"tonish/backend/models"
+	ws "tonish/backend/websocket"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -42,6 +43,11 @@ func CreateNotebook(c *fiber.Ctx) error {
 	
 	database.DB.Create(&notebook)
 	
+	// Broadcast notebook creation to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(0, ws.MessageTypeNotebookCreate, notebook)
+	}
+	
 	return c.Status(201).JSON(notebook)
 }
 
@@ -64,6 +70,11 @@ func UpdateNotebook(c *fiber.Ctx) error {
 	
 	database.DB.Save(&notebook)
 	
+	// Broadcast notebook update to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(0, ws.MessageTypeNotebookUpdate, notebook)
+	}
+	
 	return c.JSON(notebook)
 }
 
@@ -83,6 +94,11 @@ func DeleteNotebook(c *fiber.Ctx) error {
 	
 	// Delete the notebook
 	database.DB.Delete(&notebook)
+	
+	// Broadcast notebook deletion to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(0, ws.MessageTypeNotebookDelete, fiber.Map{"id": id})
+	}
 	
 	return c.Status(204).SendString("")
 }
@@ -113,6 +129,11 @@ func CreatePage(c *fiber.Ctx) error {
 	
 	database.DB.Create(&page)
 	
+	// Broadcast page creation (triggers notebook update)
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(0, ws.MessageTypeNotebookUpdate, page)
+	}
+	
 	return c.Status(201).JSON(page)
 }
 
@@ -135,6 +156,11 @@ func UpdatePage(c *fiber.Ctx) error {
 	
 	database.DB.Save(&page)
 	
+	// Broadcast page update (triggers notebook update)
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(0, ws.MessageTypeNotebookUpdate, page)
+	}
+	
 	return c.JSON(page)
 }
 
@@ -150,6 +176,11 @@ func DeletePage(c *fiber.Ctx) error {
 	}
 	
 	database.DB.Delete(&page)
+	
+	// Broadcast page deletion (triggers notebook update)
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(0, ws.MessageTypeNotebookUpdate, fiber.Map{"page_id": id})
+	}
 	
 	return c.Status(204).SendString("")
 }

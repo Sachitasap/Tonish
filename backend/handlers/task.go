@@ -5,6 +5,7 @@ import (
 
 	"tonish/backend/database"
 	"tonish/backend/models"
+	ws "tonish/backend/websocket"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -73,6 +74,11 @@ func CreateTask(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to create task: " + err.Error()})
 	}
 
+	// Broadcast task creation to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(task.UserID, ws.MessageTypeTaskCreate, task)
+	}
+
 	return c.Status(201).JSON(task)
 }
 
@@ -110,6 +116,11 @@ func UpdateTask(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to update task: " + err.Error()})
 	}
 
+	// Broadcast task update to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(task.UserID, ws.MessageTypeTaskUpdate, task)
+	}
+
 	return c.JSON(task)
 }
 
@@ -124,8 +135,15 @@ func DeleteTask(c *fiber.Ctx) error {
 		})
 	}
 
+	userID := task.UserID
+
 	if err := database.DB.Delete(&task).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to delete task"})
+	}
+
+	// Broadcast task deletion to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(userID, ws.MessageTypeTaskDelete, fiber.Map{"id": id})
 	}
 
 	return c.Status(204).SendString("")
@@ -186,6 +204,11 @@ func ArchiveTask(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to archive task"})
 	}
 
+	// Broadcast task update to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(task.UserID, ws.MessageTypeTaskUpdate, task)
+	}
+
 	return c.JSON(task)
 }
 
@@ -210,14 +233,32 @@ func RestoreTask(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to restore task"})
 	}
 
+	// Broadcast task update to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(task.UserID, ws.MessageTypeTaskUpdate, task)
+	}
+
 	return c.JSON(task)
 }
 
 func PermanentDeleteTask(c *fiber.Ctx) error {
 	id := c.Params("id")
+	var task models.Task
+
+	// Get task before deletion to get user_id
+	if err := database.DB.Unscoped().First(&task, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "Task not found"})
+	}
+
+	userID := task.UserID
 
 	if err := database.DB.Unscoped().Delete(&models.Task{}, id).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to permanently delete task"})
+	}
+
+	// Broadcast task deletion to all connected clients
+	if ws.GlobalHub != nil {
+		ws.GlobalHub.BroadcastToUser(userID, ws.MessageTypeTaskDelete, fiber.Map{"id": id})
 	}
 
 	return c.Status(204).SendString("")

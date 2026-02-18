@@ -2,11 +2,15 @@ package routes
 
 import (
 	"tonish/backend/handlers"
+	ws "tonish/backend/websocket"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func Setup(app *fiber.App) {
+	// WebSocket endpoint
+	app.Get("/ws", ws.Middleware())
+	
 	// API prefix
 	api := app.Group("/api")
 	

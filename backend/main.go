@@ -6,6 +6,7 @@ import (
 	"tonish/backend/database"
 	"tonish/backend/middleware"
 	"tonish/backend/routes"
+	ws "tonish/backend/websocket"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -17,6 +18,9 @@ func main() {
 	database.Migrate()
 	database.NormalizeTaskTypes()
 	database.SeedDefaultUser()
+
+	// Initialize WebSocket hub
+	ws.Initialize()
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
