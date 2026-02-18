@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { taskAPI } from '$lib/api';
-	import TonishLogo from '$lib/components/TonishLogo.svelte';
 	import { BarChart3, Zap, CheckCircle, Kanban, LayoutGrid, Calendar } from 'lucide-svelte';
 
 	type TaskStatus = 'todo' | 'in-progress' | 'done';
@@ -112,13 +111,11 @@
 
 <div class="min-h-screen bg-gray-950">
 	<div class="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
-		<!-- Header with Logo -->
+		<!-- Header -->
 		<div class="flex items-center justify-between py-6">
 			<div class="flex items-center gap-3">
-				<TonishLogo size="md" variant="icon" />
 				<div>
 					<h1 class="text-2xl font-bold text-white">Dashboard</h1>
-					<p class="text-sm text-gray-400">Welcome back to Tonish</p>
 				</div>
 			</div>
 		</div>

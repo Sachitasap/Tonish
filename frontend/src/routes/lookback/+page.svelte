@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { taskAPI } from '$lib/api';
-	import TonishLogo from '$lib/components/TonishLogo.svelte';
 	import { Calendar, RotateCcw, Trash2, Archive } from 'lucide-svelte';
 
 	interface Task {
@@ -169,11 +168,9 @@
 		<!-- Header -->
 		<div class="mb-8">
 			<div class="flex items-center gap-3 mb-2">
-				<TonishLogo size="md" variant="icon" />
 				<Archive class="text-purple-400" size={32} />
 				<h1 class="text-4xl font-bold text-white">LookBack</h1>
 			</div>
-			<p class="text-gray-400">Review, restore, or permanently delete archived and completed tasks</p>
 		</div>
 
 		<!-- Filters -->

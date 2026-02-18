@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import { notebookAPI } from '$lib/api';
 	import { wsService } from '$lib/websocket';
-	import TonishLogo from '$lib/components/TonishLogo.svelte';
 	import { Plus, Search, Pin, Menu, X, Trash2, Home } from 'lucide-svelte';
 
 	type Notebook = {
@@ -130,11 +129,8 @@
 			<div class="flex justify-between items-center mb-4">
 				{#if !sidebarCollapsed}
 					<div class="flex items-center gap-2">
-						<TonishLogo size="sm" variant="icon" />
 						<h2 class="text-lg font-semibold text-white">Notebooks</h2>
 					</div>
-				{:else}
-					<TonishLogo size="sm" variant="icon" />
 				{/if}
 				<button
 					onclick={() => sidebarCollapsed = !sidebarCollapsed}

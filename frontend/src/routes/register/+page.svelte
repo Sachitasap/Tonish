@@ -5,7 +5,6 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-950">
 	<div class="max-w-md w-full bg-gray-900 rounded-lg shadow-md p-8 border border-gray-800">
 		<div class="flex flex-col items-center mb-6">
-			<img src="/tonish-logo.svg" alt="Tonish Logo" class="h-24 w-auto mb-2" />
 			<h1 class="text-2xl font-bold text-white">Tonish</h1>
 			<p class="text-sm text-gray-400 mt-1">Task management made simple</p>
 		</div>

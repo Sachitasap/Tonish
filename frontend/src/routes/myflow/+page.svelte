@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import { taskAPI } from '$lib/api';
 	import { wsService } from '$lib/websocket';
-	import TonishLogo from '$lib/components/TonishLogo.svelte';
 	import { Plus, Zap, LayoutGrid, GridIcon, Circle, CheckCircle, Edit2, Trash, ArrowLeft, ArrowRight, AlertCircle, Lightbulb, Calendar, Users, CalendarDays } from 'lucide-svelte';
 
 	type TaskStatus = 'todo' | 'in-progress' | 'done';
@@ -449,7 +448,6 @@
 <div class="space-y-6">
 	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 		<div class="flex items-center gap-3">
-			<TonishLogo size="md" variant="icon" />
 			<h1 class="text-3xl font-bold text-white">MyFlow</h1>
 		</div>
 		{#if activeView === 'kanban'}
