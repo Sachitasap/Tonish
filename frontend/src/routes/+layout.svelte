@@ -22,10 +22,27 @@
 		$page.url.pathname;
 	});
 
+	// Decode JWT payload without library (base64url decode)
+	function getUserIdFromToken(): number | undefined {
+		try {
+			const token = localStorage.getItem('authToken');
+			if (!token) return undefined;
+			const payloadBase64 = token.split('.')[1];
+			if (!payloadBase64) return undefined;
+			// base64url → base64 → JSON
+			const json = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+			const payload = JSON.parse(json);
+			return payload.user_id ? Number(payload.user_id) : undefined;
+		} catch {
+			return undefined;
+		}
+	}
+
 	// Kiosk Mode functionality
 	onMount(() => {
-		// Initialize WebSocket connection
-		wsService.connect();
+		// Initialize WebSocket connection with user_id from JWT so broadcasts are routed correctly
+		const userId = getUserIdFromToken();
+		wsService.connect(userId);
 
 		// Check for kiosk mode query parameter or localStorage
 		const urlParams = new URLSearchParams(window.location.search);

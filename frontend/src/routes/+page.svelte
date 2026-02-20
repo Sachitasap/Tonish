@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { taskAPI } from '$lib/api';
+	import { wsService } from '$lib/websocket';
 	import { BarChart3, Zap, CheckCircle, Kanban, LayoutGrid, Calendar } from 'lucide-svelte';
 
 	type TaskStatus = 'todo' | 'in-progress' | 'done';
@@ -21,20 +22,13 @@
 
 	let tasks = $state<Task[]>([]);
 	let loading = $state(true);
-	
-	onMount(async () => {
-		// Check if user is authenticated
-		const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-		if (!token) {
-			goto('/login');
-			return;
-		}
+
+	async function loadTasks() {
 		try {
 			const tasksData = await taskAPI.getAll();
 			tasks = tasksData;
 		} catch (error: any) {
 			console.error('Failed to load data:', error);
-			// If unauthorized, redirect to login
 			if (error.message?.includes('Authorization') || error.message?.includes('401')) {
 				localStorage.removeItem('authToken');
 				goto('/login');
@@ -42,6 +36,28 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	onMount(async () => {
+		// Check if user is authenticated
+		const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+		if (!token) {
+			goto('/login');
+			return;
+		}
+		await loadTasks();
+
+		// Re-fetch whenever another device creates / updates / deletes a task
+		const refresh = () => loadTasks();
+		wsService.on('task_create', refresh);
+		wsService.on('task_update', refresh);
+		wsService.on('task_delete', refresh);
+
+		return () => {
+			wsService.off('task_create', refresh);
+			wsService.off('task_update', refresh);
+			wsService.off('task_delete', refresh);
+		};
 	});
 	
 	// Helper function to check if a date is today

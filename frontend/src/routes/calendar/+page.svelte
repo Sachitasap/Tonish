@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { taskAPI } from '$lib/api';
+	import { wsService } from '$lib/websocket';
 	import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Circle, CheckCircle, Plus, Edit2, Trash2, X } from 'lucide-svelte';
 
 	type TaskStatus = 'todo' | 'in-progress' | 'done';
@@ -73,6 +74,18 @@
 		} finally {
 			loading = false;
 		}
+
+		// Re-fetch whenever another device creates / updates / deletes a task
+		const refresh = () => loadTasks();
+		wsService.on('task_create', refresh);
+		wsService.on('task_update', refresh);
+		wsService.on('task_delete', refresh);
+
+		return () => {
+			wsService.off('task_create', refresh);
+			wsService.off('task_update', refresh);
+			wsService.off('task_delete', refresh);
+		};
 	});
 
 	function previousMonth() {

@@ -13,8 +13,8 @@ class WebSocketService {
 	private reconnectTimeout: NodeJS.Timeout | null = null;
 	private messageHandlers: Map<string, Set<MessageHandler>> = new Map();
 	private reconnectAttempts = 0;
-	private maxReconnectAttempts = 5;
 	private reconnectDelay = 2000;
+	private maxReconnectDelay = 30000; // cap backoff at 30s
 	
 	public connected: Writable<boolean> = writable(false);
 
@@ -63,19 +63,15 @@ class WebSocketService {
 	}
 
 	private scheduleReconnect(userId?: number) {
-		if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-			console.error('Max reconnect attempts reached');
-			return;
-		}
-
 		if (this.reconnectTimeout) {
 			clearTimeout(this.reconnectTimeout);
 		}
 
 		this.reconnectAttempts++;
-		const delay = this.reconnectDelay * this.reconnectAttempts;
+		// Exponential backoff capped at maxReconnectDelay
+		const delay = Math.min(this.reconnectDelay * this.reconnectAttempts, this.maxReconnectDelay);
 		
-		console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+		console.log(`WebSocket reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
 		
 		this.reconnectTimeout = setTimeout(() => {
 			this.connect(userId);
