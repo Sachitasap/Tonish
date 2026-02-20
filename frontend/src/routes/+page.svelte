@@ -111,74 +111,58 @@
 
 <div class="max-w-[1600px] mx-auto">
 	<!-- Compact 3-Section Layout -->
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
 			
-			<!-- Section 1: Task Summary (2x2 Grid) -->
-			<div class="lg:col-span-1 space-y-2">
-				<div class="bg-gray-900 rounded-lg border border-gray-800 p-2.5">
-					<h2 class="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
-						<BarChart3 size={14} class="text-blue-600" />
+			<!-- Section 1: Task Summary (compact list) -->
+			<div class="lg:col-span-1">
+				<div class="bg-gray-900 rounded-lg border border-gray-800 p-2">
+					<h2 class="text-xs font-bold text-white mb-1.5 flex items-center gap-1.5 px-1">
+						<BarChart3 size={12} class="text-blue-600" />
 						Task Summary
 					</h2>
-					<div class="grid grid-cols-2 gap-1">
+					<div class="space-y-0.5">
 						<!-- Today's Tasks -->
-						<a href="/myflow" class="flex flex-col justify-between p-2 rounded-md hover:bg-gray-800 transition-colors group">
-							<div class="flex items-center gap-1.5 mb-1">
-								<div class="w-6 h-6 rounded-md bg-amber-950 flex items-center justify-center flex-shrink-0">
-									<CheckCircle size={12} class="text-amber-400" />
-								</div>
-								<p class="text-[10px] text-gray-400 leading-none">Today</p>
+						<a href="/myflow" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+							<div class="w-5 h-5 rounded bg-amber-950 flex items-center justify-center flex-shrink-0">
+								<CheckCircle size={10} class="text-amber-400" />
 							</div>
-							<div class="flex items-baseline justify-between">
-								<p class="text-xl font-bold text-white leading-tight">{todayTasks.length}</p>
-								{#if todayCompletedTasks.length > 0}
-									<span class="text-[9px] text-gray-400">{todayCompletedTasks.length} done</span>
-								{/if}
-							</div>
+							<span class="text-[10px] text-gray-400 flex-1 leading-none">Today</span>
+							{#if todayCompletedTasks.length > 0}
+								<span class="text-[9px] text-gray-500">{todayCompletedTasks.length} done</span>
+							{/if}
+							<span class="text-sm font-bold text-white w-6 text-right leading-none">{todayTasks.length}</span>
 						</a>
 
 						<!-- Active Tasks -->
-						<a href="/myflow" class="flex flex-col justify-between p-2 rounded-md hover:bg-gray-800 transition-colors group">
-							<div class="flex items-center gap-1.5 mb-1">
-								<div class="w-6 h-6 rounded-md bg-emerald-950 flex items-center justify-center flex-shrink-0">
-									<Zap size={12} class="text-emerald-400" />
-								</div>
-								<p class="text-[10px] text-gray-400 leading-none">Active</p>
+						<a href="/myflow" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+							<div class="w-5 h-5 rounded bg-emerald-950 flex items-center justify-center flex-shrink-0">
+								<Zap size={10} class="text-emerald-400" />
 							</div>
-							<div class="flex items-baseline justify-between">
-								<p class="text-xl font-bold text-white leading-tight">{inProgressTasks}</p>
-								<span class="text-[9px] text-gray-400">{completedTasks} done</span>
-							</div>
+							<span class="text-[10px] text-gray-400 flex-1 leading-none">Active</span>
+							<span class="text-[9px] text-gray-500">{completedTasks} done</span>
+							<span class="text-sm font-bold text-white w-6 text-right leading-none">{inProgressTasks}</span>
 						</a>
 
 						<!-- Upcoming Tasks -->
-						<a href="/calendar" class="flex flex-col justify-between p-2 rounded-md hover:bg-gray-800 transition-colors group">
-							<div class="flex items-center gap-1.5 mb-1">
-								<div class="w-6 h-6 rounded-md bg-blue-950 flex items-center justify-center flex-shrink-0">
-									<Calendar size={12} class="text-blue-400" />
-								</div>
-								<p class="text-[10px] text-gray-400 leading-none">Upcoming</p>
+						<a href="/calendar" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+							<div class="w-5 h-5 rounded bg-blue-950 flex items-center justify-center flex-shrink-0">
+								<Calendar size={10} class="text-blue-400" />
 							</div>
-							<div class="flex items-baseline justify-between">
-								<p class="text-xl font-bold text-white leading-tight">{upcomingTasks.length}</p>
-								<span class="text-[9px] text-gray-400">7 days</span>
-							</div>
+							<span class="text-[10px] text-gray-400 flex-1 leading-none">Upcoming</span>
+							<span class="text-[9px] text-gray-500">7 days</span>
+							<span class="text-sm font-bold text-white w-6 text-right leading-none">{upcomingTasks.length}</span>
 						</a>
 
 						<!-- Overdue Tasks -->
-						<a href="/myflow" class="flex flex-col justify-between p-2 rounded-md hover:bg-gray-800 transition-colors group">
-							<div class="flex items-center gap-1.5 mb-1">
-								<div class="w-6 h-6 rounded-md bg-red-950 flex items-center justify-center flex-shrink-0">
-									<Zap size={12} class="text-red-400" />
-								</div>
-								<p class="text-[10px] text-gray-400 leading-none">Overdue</p>
+						<a href="/myflow" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+							<div class="w-5 h-5 rounded bg-red-950 flex items-center justify-center flex-shrink-0">
+								<Zap size={10} class="text-red-400" />
 							</div>
-							<div class="flex items-baseline justify-between">
-								<p class="text-xl font-bold text-white leading-tight">{overdueTasks.length}</p>
-								{#if overdueTasks.length > 0}
-									<span class="text-[9px] text-red-400 font-medium">Urgent</span>
-								{/if}
-							</div>
+							<span class="text-[10px] text-gray-400 flex-1 leading-none">Overdue</span>
+							{#if overdueTasks.length > 0}
+								<span class="text-[9px] text-red-400 font-medium">urgent</span>
+							{/if}
+							<span class="text-sm font-bold {overdueTasks.length > 0 ? 'text-red-400' : 'text-white'} w-6 text-right leading-none">{overdueTasks.length}</span>
 						</a>
 					</div>
 				</div>
@@ -186,50 +170,50 @@
 
 			<!-- Section 2: Kanban Board Summary -->
 			<div class="lg:col-span-1">
-				<a href="/myflow" class="block bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4 hover:border-gray-700 hover:shadow-md transition-all h-full">
-					<div class="flex items-center justify-between mb-3">
-						<h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-							<Kanban size={18} class="text-blue-400" />
+				<a href="/myflow" class="block bg-gray-900 rounded-lg border border-gray-800 p-2.5 hover:border-gray-700 hover:shadow-md transition-all h-full">
+					<div class="flex items-center justify-between mb-2">
+						<h2 class="text-sm font-bold text-white flex items-center gap-1.5">
+							<Kanban size={13} class="text-blue-400" />
 							Kanban Board
 						</h2>
 						<span class="text-[10px] text-gray-400">{kanbanTasks.length} tasks</span>
 					</div>
 
 					<!-- Compact Kanban Columns -->
-					<div class="grid grid-cols-3 gap-2 mb-3">
-						<div class="bg-gray-800 rounded-lg p-2.5 border border-gray-700">
-							<div class="flex items-center gap-1.5 mb-2">
+					<div class="grid grid-cols-3 gap-1.5 mb-2">
+						<div class="bg-gray-800 rounded-md p-2 border border-gray-700">
+							<div class="flex items-center gap-1 mb-1">
 								<div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-								<h4 class="text-[10px] font-bold text-gray-300 uppercase tracking-wide">To Do</h4>
+								<h4 class="text-[9px] font-bold text-gray-300 uppercase tracking-wide">To Do</h4>
 							</div>
-							<p class="text-2xl font-bold text-white">{kanbanTodo}</p>
+							<p class="text-xl font-bold text-white leading-none">{kanbanTodo}</p>
 						</div>
 
-						<div class="bg-blue-950 rounded-lg p-2.5 border border-blue-900">
-							<div class="flex items-center gap-1.5 mb-2">
+						<div class="bg-blue-950 rounded-md p-2 border border-blue-900">
+							<div class="flex items-center gap-1 mb-1">
 								<div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-								<h4 class="text-[10px] font-bold text-blue-300 uppercase tracking-wide">Active</h4>
+								<h4 class="text-[9px] font-bold text-blue-300 uppercase tracking-wide">Active</h4>
 							</div>
-							<p class="text-2xl font-bold text-white">{kanbanInProgress}</p>
+							<p class="text-xl font-bold text-white leading-none">{kanbanInProgress}</p>
 						</div>
 
-						<div class="bg-emerald-950 rounded-lg p-2.5 border border-emerald-900">
-							<div class="flex items-center gap-1.5 mb-2">
+						<div class="bg-emerald-950 rounded-md p-2 border border-emerald-900">
+							<div class="flex items-center gap-1 mb-1">
 								<div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-								<h4 class="text-[10px] font-bold text-emerald-300 uppercase tracking-wide">Done</h4>
+								<h4 class="text-[9px] font-bold text-emerald-300 uppercase tracking-wide">Done</h4>
 							</div>
-							<p class="text-2xl font-bold text-white">{kanbanDone}</p>
+							<p class="text-xl font-bold text-white leading-none">{kanbanDone}</p>
 						</div>
 					</div>
 
 					<!-- Compact Progress Bar -->
 					{#if kanbanTasks.length > 0}
-						<div class="pt-3 border-t border-gray-800">
-							<div class="flex justify-between text-xs text-gray-400 mb-2">
+						<div class="pt-2 border-t border-gray-800">
+							<div class="flex justify-between text-[10px] text-gray-400 mb-1.5">
 								<span>Progress</span>
 								<span class="font-semibold text-white">{Math.round((kanbanDone / kanbanTasks.length) * 100)}%</span>
 							</div>
-							<div class="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+							<div class="h-1 bg-gray-800 rounded-full overflow-hidden">
 								<div 
 									class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-700 rounded-full"
 									style="width: {(kanbanDone / kanbanTasks.length) * 100}%"
@@ -241,68 +225,56 @@
 			</div>
 
 			<!-- Section 3: Eisenhower Matrix -->
-			<div class="lg:col-span-1">
-				<a href="/myflow" class="block bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4 hover:border-gray-700 hover:shadow-md transition-all h-full">
-					<div class="flex items-center justify-between mb-3">
-						<h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-							<LayoutGrid size={18} class="text-purple-400" />
+			<div class="lg:col-span-1 sm:col-span-2 lg:col-auto">
+				<a href="/myflow" class="block bg-gray-900 rounded-lg border border-gray-800 p-2.5 hover:border-gray-700 hover:shadow-md transition-all h-full">
+					<div class="flex items-center justify-between mb-2">
+						<h2 class="text-sm font-bold text-white flex items-center gap-1.5">
+							<LayoutGrid size={13} class="text-purple-400" />
 							Eisenhower Matrix
 						</h2>
 						<span class="text-[10px] text-gray-400">{matrixTasks.length} tasks</span>
 					</div>
 
 					<!-- Compact Matrix Grid -->
-					<div class="grid grid-cols-2 gap-2 mb-3">
+					<div class="grid grid-cols-4 gap-1.5 mb-2">
 						<!-- Do First -->
-						<div class="bg-red-950 rounded-lg p-2.5 border border-red-900">
-							<div class="flex items-center gap-1.5 mb-2">
-								<div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-								<h4 class="text-[10px] font-bold text-red-300 uppercase tracking-wide">Do First</h4>
-							</div>
-							<p class="text-2xl font-bold text-white">{urgentImportant}</p>
-							<p class="text-[9px] text-red-400 mt-1">Urgent & Important</p>
+						<div class="bg-red-950 rounded-md p-1.5 border border-red-900 flex flex-col items-center">
+							<div class="w-1.5 h-1.5 rounded-full bg-red-500 mb-1"></div>
+							<p class="text-lg font-bold text-white leading-none">{urgentImportant}</p>
+							<p class="text-[8px] text-red-400 mt-0.5 text-center leading-tight">Do First</p>
 						</div>
 
 						<!-- Schedule -->
-						<div class="bg-amber-950 rounded-lg p-2.5 border border-amber-900">
-							<div class="flex items-center gap-1.5 mb-2">
-								<div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-								<h4 class="text-[10px] font-bold text-amber-300 uppercase tracking-wide">Schedule</h4>
-							</div>
-							<p class="text-2xl font-bold text-white">{notUrgentImportant}</p>
-							<p class="text-[9px] text-amber-400 mt-1">Important</p>
+						<div class="bg-amber-950 rounded-md p-1.5 border border-amber-900 flex flex-col items-center">
+							<div class="w-1.5 h-1.5 rounded-full bg-amber-500 mb-1"></div>
+							<p class="text-lg font-bold text-white leading-none">{notUrgentImportant}</p>
+							<p class="text-[8px] text-amber-400 mt-0.5 text-center leading-tight">Schedule</p>
 						</div>
 
 						<!-- Delegate -->
-						<div class="bg-blue-950 rounded-lg p-2.5 border border-blue-900">
-							<div class="flex items-center gap-1.5 mb-2">
-								<div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-								<h4 class="text-[10px] font-bold text-blue-300 uppercase tracking-wide">Delegate</h4>
-							</div>
-							<p class="text-2xl font-bold text-white">{urgentNotImportant}</p>
-							<p class="text-[9px] text-blue-400 mt-1">Urgent</p>
+						<div class="bg-blue-950 rounded-md p-1.5 border border-blue-900 flex flex-col items-center">
+							<div class="w-1.5 h-1.5 rounded-full bg-blue-500 mb-1"></div>
+							<p class="text-lg font-bold text-white leading-none">{urgentNotImportant}</p>
+							<p class="text-[8px] text-blue-400 mt-0.5 text-center leading-tight">Delegate</p>
 						</div>
 
 						<!-- Eliminate -->
-						<div class="bg-gray-800 rounded-lg p-2.5 border border-gray-700">
-							<div class="flex items-center gap-1.5 mb-2">
-								<div class="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-								<h4 class="text-[10px] font-bold text-gray-300 uppercase tracking-wide">Eliminate</h4>
-							</div>
-							<p class="text-2xl font-bold text-white">{notUrgentNotImportant}</p>
-							<p class="text-[9px] text-gray-400 mt-1">Low Priority</p>
+						<div class="bg-gray-800 rounded-md p-1.5 border border-gray-700 flex flex-col items-center">
+							<div class="w-1.5 h-1.5 rounded-full bg-gray-400 mb-1"></div>
+							<p class="text-lg font-bold text-white leading-none">{notUrgentNotImportant}</p>
+							<p class="text-[8px] text-gray-400 mt-0.5 text-center leading-tight">Eliminate</p>
 						</div>
 					</div>
 
 					<!-- Completed -->
 					{#if matrixCompleted > 0}
-						<div class="pt-3 border-t border-gray-800">
-							<div class="flex items-center justify-between bg-emerald-950 rounded-lg px-3 py-2 border border-emerald-900">
-								<div class="flex items-center gap-2">
-									<CheckCircle size={14} class="text-emerald-400" />
-									<span class="text-[10px] font-bold text-emerald-300 uppercase tracking-wide">Completed</span>
+						<div class="pt-2 border-t border-gray-800">
+							<div class="flex items-center justify-between bg-emerald-950 rounded-md px-2.5 py-1.5 border border-emerald-900">
+								<div class="flex items-center gap-1.5">
+									<CheckCircle size={11} class="text-emerald-400" />
+									<span class="text-[9px] font-bold text-emerald-300 uppercase tracking-wide">Completed</span>
 								</div>
-								<span class="text-lg font-bold text-emerald-400">{matrixCompleted}</span>
+								<span class="text-sm font-bold text-emerald-400">{matrixCompleted}</span>
 							</div>
 						</div>
 					{/if}

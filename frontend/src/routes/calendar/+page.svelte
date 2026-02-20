@@ -288,6 +288,8 @@
 	const selectedDateTasks = $derived(
 		selectedDate ? getTasksForDate(selectedDate) : []
 	);
+	// Short single-letter day names for mobile
+	const dayNamesShort = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 </script>
 
 <svelte:head>
@@ -299,381 +301,314 @@
 		<div class="text-center py-12">
 			<p class="text-gray-400 text-sm">Loading calendar...</p>
 		</div>
-		{:else}
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-				<!-- Calendar View -->
-				<div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-lg p-3 sm:p-4">
-					<!-- Calendar Header -->
-					<div class="flex items-center justify-between mb-3">
-						<h2 class="text-sm font-bold text-white">{monthNames[currentMonth]} {currentYear}</h2>
-						<div class="flex items-center gap-1.5">
-							<button
-								onclick={() => openAddTaskModal()}
-								class="min-h-[36px] px-2.5 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition flex items-center gap-1 text-xs font-medium touch-manipulation"
-							><Plus size={13} /> Add</button>
-							<button
-								onclick={goToToday}
-								class="min-h-[36px] px-2.5 py-1 text-xs bg-blue-950 text-blue-300 rounded-md hover:bg-blue-900 font-medium transition touch-manipulation"
-							>Today</button>
-							<button
-								onclick={previousMonth}
-								class="min-w-[36px] min-h-[36px] p-1.5 hover:bg-gray-800 rounded-md transition text-gray-300 touch-manipulation flex items-center justify-center"
-								aria-label="Previous month"
-							><ChevronLeft size={16} /></button>
-							<button
-								onclick={nextMonth}
-								class="min-w-[36px] min-h-[36px] p-1.5 hover:bg-gray-800 rounded-md transition text-gray-300 touch-manipulation flex items-center justify-center"
-								aria-label="Next month"
-							><ChevronRight size={16} /></button>
-						</div>
-					</div>
+	{:else}
+		<!-- Main layout: 1-col mobile → 3-col tablet → 3-col desktop -->
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
 
-					<!-- Calendar Grid -->
-					<div class="grid grid-cols-7 gap-1 sm:gap-2">
-						<!-- Day Names -->
-						{#each dayNames as dayName}
-							<div class="text-center text-xs font-semibold text-gray-400 py-2">
-								{dayName}
-							</div>
-						{/each}
+			<!-- ── Calendar Panel ── -->
+			<div class="sm:col-span-2 bg-gray-900 border border-gray-800 rounded-lg p-2.5 sm:p-3">
 
-						<!-- Calendar Days -->
-						{#each calendarDays as day}
-							{#if day === null}
-								<div class="aspect-square"></div>
-							{:else}
-								{@const dayTasks = getTasksForDate(day)}
-								{@const isToday = isDateToday(day)}
-								{@const isSelected = selectedDate === day}
-								<button
-									onclick={() => selectDate(day)}
-								class="aspect-square min-h-[48px] md:min-h-[56px] rounded-md p-2 transition-all relative group touch-manipulation
-									{isToday ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-500' : ''}
-									{isSelected && !isToday ? 'bg-blue-950 ring-2 ring-blue-400' : ''}
-									{!isToday && !isSelected ? 'hover:bg-gray-800 active:bg-gray-700 text-gray-300' : ''}
-										{dayTasks.length > 0 ? 'font-semibold' : ''}"
-								>
-									<div class="flex flex-col h-full">
-										<span class="text-sm md:text-base font-medium {isToday ? 'text-white' : 'text-gray-300'}">
-											{day}
-										</span>
-										{#if dayTasks.length > 0}
-											<div class="flex-1 flex items-end justify-center mt-0.5">
-												<div class="flex gap-0.5">
-													{#each dayTasks.slice(0, 3) as task}
-														<div 
-															class="w-1.5 h-1.5 rounded-full
-																{task.status === 'done' ? 'bg-green-500' : ''}
-																{task.status === 'in-progress' ? 'bg-blue-500' : ''}
-																{task.status === 'todo' ? 'bg-gray-400' : ''}
-																{isToday ? 'bg-white' : ''}"
-														></div>
-													{/each}
-													{#if dayTasks.length > 3}
-														<span class="text-[10px] font-bold {isToday ? 'text-white' : 'text-gray-400'}">+</span>
-													{/if}
-												</div>
-											</div>
-										{/if}
-									</div>
-								</button>
-							{/if}
-						{/each}
-					</div>
-
-					<!-- Legend -->
-					<div class="mt-4 pt-4 border-t border-gray-800">
-						<h3 class="text-xs font-semibold text-gray-300 mb-2">Status Legend</h3>
-						<div class="flex flex-wrap gap-3 text-xs">
-							<div class="flex items-center gap-1.5">
-								<div class="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
-								<span class="text-gray-400">To Do</span>
-							</div>
-							<div class="flex items-center gap-1.5">
-								<div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-								<span class="text-gray-400">In Progress</span>
-							</div>
-							<div class="flex items-center gap-1.5">
-								<div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-								<span class="text-gray-400">Completed</span>
-							</div>
-						</div>
+				<!-- Calendar Header -->
+				<div class="flex items-center justify-between mb-2.5">
+					<h2 class="text-sm font-bold text-white leading-none">
+						{monthNames[currentMonth]} <span class="text-gray-400 font-normal">{currentYear}</span>
+					</h2>
+					<div class="flex items-center gap-1">
+						<button
+							onclick={() => openAddTaskModal()}
+							class="h-8 px-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition flex items-center gap-1 text-xs font-medium touch-manipulation"
+						><Plus size={12} /> <span class="hidden sm:inline">Add</span></button>
+						<button
+							onclick={goToToday}
+							class="h-8 px-2 text-xs bg-blue-950 text-blue-300 rounded-md hover:bg-blue-900 font-medium transition touch-manipulation"
+						>Today</button>
+						<button
+							onclick={previousMonth}
+							class="w-8 h-8 flex items-center justify-center hover:bg-gray-800 rounded-md transition text-gray-300 touch-manipulation"
+							aria-label="Previous month"
+						><ChevronLeft size={15} /></button>
+						<button
+							onclick={nextMonth}
+							class="w-8 h-8 flex items-center justify-center hover:bg-gray-800 rounded-md transition text-gray-300 touch-manipulation"
+							aria-label="Next month"
+						><ChevronRight size={15} /></button>
 					</div>
 				</div>
 
-				<!-- Task Details Sidebar -->
-				<div class="bg-gray-900 border border-gray-800 rounded-lg p-3 sm:p-4">
-					<!-- Monthly Summary at Top -->
-					{#if tasks.length > 0}
+				<!-- Calendar Grid -->
+				<div class="grid grid-cols-7 gap-px sm:gap-1">
+					<!-- Day Names -->
+					{#each dayNames as dayName, i}
+						<div class="text-center py-1.5">
+							<!-- Single letter on mobile, 3-letter on sm+ -->
+							<span class="text-[10px] font-semibold text-gray-500 sm:hidden">{dayNamesShort[i]}</span>
+							<span class="hidden sm:inline text-xs font-semibold text-gray-400">{dayName}</span>
+						</div>
+					{/each}
+
+					<!-- Calendar Days -->
+					{#each calendarDays as day}
+						{#if day === null}
+							<div class="aspect-square"></div>
+						{:else}
+							{@const dayTasks = getTasksForDate(day)}
+							{@const isToday = isDateToday(day)}
+							{@const isSelected = selectedDate === day}
+							<button
+								onclick={() => selectDate(day)}
+								class="aspect-square rounded sm:rounded-md transition-all touch-manipulation flex flex-col items-center justify-start pt-1 sm:pt-1.5 px-0.5
+									{isToday ? 'bg-blue-600 ring-1 ring-blue-400' : ''}
+									{isSelected && !isToday ? 'bg-blue-950 ring-1 ring-blue-500' : ''}
+									{!isToday && !isSelected ? 'hover:bg-gray-800 active:bg-gray-700' : ''}"
+							>
+								<span class="text-[11px] sm:text-sm font-medium leading-none
+									{isToday ? 'text-white' : isSelected ? 'text-blue-300' : 'text-gray-300'}">
+									{day}
+								</span>
+								{#if dayTasks.length > 0}
+									<div class="flex gap-px mt-0.5 sm:mt-1">
+										{#each dayTasks.slice(0, 3) as task}
+											<div class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full
+												{isToday ? 'bg-white' :
+												task.status === 'done' ? 'bg-green-500' :
+												task.status === 'in-progress' ? 'bg-blue-400' : 'bg-gray-500'}">
+											</div>
+										{/each}
+										{#if dayTasks.length > 3}
+											<span class="text-[8px] font-bold {isToday ? 'text-white' : 'text-gray-500'}">+</span>
+										{/if}
+									</div>
+								{/if}
+							</button>
+						{/if}
+					{/each}
+				</div>
+
+				<!-- Legend + status bar (compact, single row) -->
+				<div class="mt-2 pt-2 border-t border-gray-800 flex items-center gap-3 flex-wrap">
+					<div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-gray-500"></div><span class="text-[10px] text-gray-500">To Do</span></div>
+					<div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-blue-400"></div><span class="text-[10px] text-gray-500">Active</span></div>
+					<div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div><span class="text-[10px] text-gray-500">Done</span></div>
+				</div>
+			</div>
+
+			<!-- ── Sidebar ── -->
+			<div class="sm:col-span-1 bg-gray-900 border border-gray-800 rounded-lg p-2.5 sm:p-3 flex flex-col gap-2">
+
+				<!-- Monthly Summary (compact 4-col horizontal row) -->
+				{#if tasks.length > 0}
 					{@const monthTasks = tasks.filter(task => {
 						if (!task.due_date) return false;
 						const taskDate = new Date(task.due_date);
 						return taskDate.getMonth() === currentMonth && taskDate.getFullYear() === currentYear;
 					})}
-					<div class="mb-4 pb-4 border-b border-gray-800 bg-gray-800 rounded-lg p-3">
-						<h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
-							<CalendarIcon size={14} class="text-blue-400" />
+					<div class="bg-gray-800 rounded-md p-2 border border-gray-700">
+						<p class="text-[10px] font-semibold text-gray-400 mb-1.5 flex items-center gap-1">
+							<CalendarIcon size={10} class="text-blue-400" />
 							{monthNames[currentMonth]} Summary
-						</h4>
-						<div class="grid grid-cols-2 gap-2">
-							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
-								<div class="text-lg font-bold text-white">{monthTasks.length}</div>
-								<div class="text-[10px] text-gray-400 mt-0.5">Total</div>
+						</p>
+						<div class="grid grid-cols-4 gap-1">
+							<div class="flex flex-col items-center bg-gray-900 rounded p-1.5 border border-gray-700">
+								<span class="text-base font-bold text-white leading-none">{monthTasks.length}</span>
+								<span class="text-[9px] text-gray-500 mt-0.5">Total</span>
 							</div>
-							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
-								<div class="text-lg font-bold text-green-400">{monthTasks.filter(t => t.status === 'done').length}</div>
-								<div class="text-[10px] text-gray-400 mt-0.5">Done</div>
+							<div class="flex flex-col items-center bg-gray-900 rounded p-1.5 border border-gray-700">
+								<span class="text-base font-bold text-gray-400 leading-none">{monthTasks.filter(t => t.status === 'todo').length}</span>
+								<span class="text-[9px] text-gray-500 mt-0.5">Todo</span>
 							</div>
-							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
-								<div class="text-lg font-bold text-blue-400">{monthTasks.filter(t => t.status === 'in-progress').length}</div>
-								<div class="text-[10px] text-gray-400 mt-0.5">Active</div>
+							<div class="flex flex-col items-center bg-gray-900 rounded p-1.5 border border-gray-700">
+								<span class="text-base font-bold text-blue-400 leading-none">{monthTasks.filter(t => t.status === 'in-progress').length}</span>
+								<span class="text-[9px] text-gray-500 mt-0.5">Active</span>
 							</div>
-							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
-								<div class="text-lg font-bold text-gray-400">{monthTasks.filter(t => t.status === 'todo').length}</div>
-								<div class="text-[10px] text-gray-400 mt-0.5">To Do</div>
+							<div class="flex flex-col items-center bg-gray-900 rounded p-1.5 border border-gray-700">
+								<span class="text-base font-bold text-green-400 leading-none">{monthTasks.filter(t => t.status === 'done').length}</span>
+								<span class="text-[9px] text-gray-500 mt-0.5">Done</span>
 							</div>
 						</div>
 					</div>
-					{/if}
+				{/if}
 
-					<h3 class="text-base font-bold text-white mb-3">
+				<!-- Selected Date Tasks -->
+				<div class="flex-1 min-h-0">
+					<div class="flex items-center justify-between mb-2">
+						<h3 class="text-xs font-bold text-white leading-none">
+							{#if selectedDate}
+								{monthNames[currentMonth]} {selectedDate}
+							{:else}
+								Select a date
+							{/if}
+						</h3>
 						{#if selectedDate}
-							Tasks for {monthNames[currentMonth]} {selectedDate}
-						{:else}
-							Select a date
+							<button
+								onclick={() => openAddTaskModal(selectedDate)}
+								class="h-7 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-medium flex items-center gap-1 touch-manipulation"
+							><Plus size={10} /> Add</button>
 						{/if}
-					</h3>
+					</div>
 
 					{#if selectedDate}
 						{#if selectedDateTasks.length > 0}
-							<div class="space-y-4">
+							<div class="space-y-1.5 overflow-y-auto max-h-[50vh] sm:max-h-[calc(100vh-320px)] pr-0.5">
 								{#each selectedDateTasks as task}
 									{@const StatusIcon = getStatusIcon(task.status)}
 									{#if editingTask && editingTask.id === task.id}
 										<!-- Edit Mode -->
-										<div class="border-2 border-blue-500 rounded-lg p-4 shadow-md bg-gray-800">
-											<div class="space-y-4">
+										<div class="border border-blue-500 rounded-lg p-2.5 bg-gray-800">
+											<div class="space-y-2">
 												<input
 													type="text"
 													bind:value={editingTask.title}
-													class="w-full min-h-[44px] px-4 py-3 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+													class="w-full min-h-[36px] px-3 py-2 bg-gray-900 border border-gray-700 text-white rounded-md text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"
 													placeholder="Task title"
 												/>
 												<textarea
 													bind:value={editingTask.description}
-													class="w-full px-4 py-3 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-													placeholder="Description (optional)"
+													class="w-full px-3 py-2 bg-gray-900 border border-gray-700 text-white rounded-md text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+													placeholder="Description"
 													rows="2"
 												></textarea>
-												<div class="grid grid-cols-2 gap-3">
-													<select
-														bind:value={editingTask.priority}
-														class="min-h-[44px] px-4 py-3 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-													>
+												<div class="grid grid-cols-2 gap-1.5">
+													<select bind:value={editingTask.priority}
+														class="min-h-[36px] px-2 py-1.5 bg-gray-900 border border-gray-700 text-white rounded-md text-xs focus:ring-1 focus:ring-blue-500">
 														<option value="low">Low</option>
 														<option value="medium">Medium</option>
 														<option value="high">High</option>
 													</select>
-													<select
-														bind:value={editingTask.status}
-														class="min-h-[44px] px-4 py-3 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-													>
+													<select bind:value={editingTask.status}
+														class="min-h-[36px] px-2 py-1.5 bg-gray-900 border border-gray-700 text-white rounded-md text-xs focus:ring-1 focus:ring-blue-500">
 														<option value="todo">To Do</option>
 														<option value="in-progress">In Progress</option>
 														<option value="done">Done</option>
 													</select>
 												</div>
-												<input
-													type="date"
-													bind:value={editingTask.due_date}
-													class="w-full min-h-[44px] px-4 py-3 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-												/>
-												<div class="flex gap-3">
-													<button
-														onclick={handleSaveEditedTask}
-														class="flex-1 min-h-[48px] px-5 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition font-medium text-base touch-manipulation"
-													>
-														Save
-													</button>
-													<button
-														onclick={cancelEditTask}
-														class="flex-1 min-h-[48px] px-5 py-3 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 active:bg-gray-500 transition font-medium text-base touch-manipulation"
-													>
-														Cancel
-													</button>
+												<input type="date" bind:value={editingTask.due_date}
+													class="w-full min-h-[36px] px-3 py-2 bg-gray-900 border border-gray-700 text-white rounded-md text-sm focus:ring-1 focus:ring-blue-500" />
+												<div class="flex gap-1.5">
+													<button onclick={handleSaveEditedTask}
+														class="flex-1 h-9 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 touch-manipulation">Save</button>
+													<button onclick={cancelEditTask}
+														class="flex-1 h-9 bg-gray-700 text-gray-200 rounded-md text-xs font-medium hover:bg-gray-600 touch-manipulation">Cancel</button>
 												</div>
 											</div>
 										</div>
 									{:else}
 										<!-- View Mode -->
-								<div class="border-l-4 {getPriorityColor(task.priority)} bg-gray-800 rounded-lg p-4 shadow-sm">
-									<div class="flex items-start gap-3">
-										<StatusIcon size={20} class="{getStatusColor(task.status)} mt-0.5" />
-										<div class="flex-1">
-											<h4 class="font-semibold text-gray-200">{task.title}</h4>
-											{#if task.description}
-												<p class="text-sm text-gray-400 mt-1">{task.description}</p>
+										<div class="border-l-2 {getPriorityColor(task.priority)} rounded-md p-2 flex items-start gap-2">
+											<StatusIcon size={14} class="{getStatusColor(task.status)} mt-0.5 flex-shrink-0" />
+											<div class="flex-1 min-w-0">
+												<p class="text-xs font-semibold text-gray-200 truncate">{task.title}</p>
+												{#if task.description}
+													<p class="text-[10px] text-gray-400 mt-0.5 line-clamp-1">{task.description}</p>
+												{/if}
+												<div class="flex items-center gap-1.5 mt-1 flex-wrap">
+													<span class="text-[9px] px-1.5 py-0.5 rounded-full
+														{task.status === 'done' ? 'bg-green-950 text-green-300' :
+														task.status === 'in-progress' ? 'bg-blue-950 text-blue-300' : 'bg-gray-700 text-gray-300'}">
+														{task.status.replace('-', ' ')}
+													</span>
+													{#if task.priority === 'high'}
+														<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-red-950 text-red-300">High</span>
 													{/if}
-													<div class="flex items-center gap-2 mt-2">
-														<span class="text-xs px-2 py-1 rounded-full
-													{task.status === 'done' ? 'bg-green-950 text-green-300' : ''}
-													{task.status === 'in-progress' ? 'bg-blue-950 text-blue-300' : ''}
-													{task.status === 'todo' ? 'bg-gray-800 text-gray-300' : ''}">
-															{task.status.replace('-', ' ')}
-														</span>
-														{#if task.priority === 'high'}
-															<span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
-																High Priority
-															</span>
-														{/if}
-													</div>
 												</div>
-												<div class="flex gap-2">
-													<button
-														onclick={() => startEditTask(task)}
-														class="min-w-[44px] min-h-[44px] p-2.5 hover:bg-blue-950 active:bg-blue-900 rounded-lg transition text-blue-400 touch-manipulation flex items-center justify-center"
-														aria-label="Edit task"
-													>
-														<Edit2 size={20} />
-													</button>
-													<button
-														onclick={() => handleDeleteTask(task.id)}
-														class="min-w-[44px] min-h-[44px] p-2.5 hover:bg-red-950 active:bg-red-900 rounded-lg transition text-red-400 touch-manipulation flex items-center justify-center"
-														aria-label="Delete task"
-													>
-														<Trash2 size={20} />
-													</button>
-												</div>
+											</div>
+											<div class="flex gap-1 flex-shrink-0">
+												<button onclick={() => startEditTask(task)}
+													class="w-7 h-7 flex items-center justify-center hover:bg-blue-950 rounded text-blue-400 touch-manipulation"
+													aria-label="Edit"><Edit2 size={13} /></button>
+												<button onclick={() => handleDeleteTask(task.id)}
+													class="w-7 h-7 flex items-center justify-center hover:bg-red-950 rounded text-red-400 touch-manipulation"
+													aria-label="Delete"><Trash2 size={13} /></button>
 											</div>
 										</div>
 									{/if}
 								{/each}
 							</div>
 						{:else}
-							<div class="text-center py-8">
-							<CalendarIcon size={48} class="text-gray-600 mx-auto mb-3" />
-							<p class="text-gray-400">No tasks scheduled for this day</p>
+							<div class="text-center py-6">
+								<CalendarIcon size={32} class="text-gray-700 mx-auto mb-2" />
+								<p class="text-xs text-gray-500">No tasks for this day</p>
 								<button
 									onclick={() => openAddTaskModal(selectedDate)}
-									class="inline-flex items-center justify-center gap-2 mt-4 min-h-[44px] px-5 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:scale-95 transition text-sm font-medium touch-manipulation"
-								>
-									<Plus size={20} />
-									Add Task
-								</button>
+									class="inline-flex items-center gap-1 mt-3 h-8 px-3 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 touch-manipulation"
+								><Plus size={12} /> Add Task</button>
 							</div>
 						{/if}
 					{:else}
-						<div class="text-center py-8">
-							<CalendarIcon size={48} class="text-gray-600 mx-auto mb-3" />
-							<p class="text-gray-400">Click on a date to view tasks</p>
+						<div class="text-center py-6">
+							<CalendarIcon size={32} class="text-gray-700 mx-auto mb-2" />
+							<p class="text-xs text-gray-500">Tap a date to view tasks</p>
 						</div>
 					{/if}
 				</div>
 			</div>
-		{/if}
+		</div>
+	{/if}
 
-		<!-- Add Task Modal -->
-		{#if showAddTask}
-			<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-				<div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
-					<div class="flex items-center justify-between mb-4">
-						<h3 class="text-lg font-bold text-white">Add New Task</h3>
-						<button
-							onclick={closeAddTaskModal}
-							class="min-w-[44px] min-h-[44px] p-2.5 hover:bg-gray-800 active:bg-gray-700 rounded-lg transition text-gray-400 touch-manipulation flex items-center justify-center"
-							aria-label="Close"
-						>
-							<X size={24} />
-						</button>
+	<!-- Add Task Modal (bottom-sheet style on mobile, centered on sm+) -->
+	{#if showAddTask}
+		<div class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center sm:p-4" onclick={(e) => { if (e.target === e.currentTarget) closeAddTaskModal(); }}>
+			<div class="bg-gray-900 border border-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
+				<div class="flex items-center justify-between mb-3">
+					<h3 class="text-sm font-bold text-white">Add New Task</h3>
+					<button onclick={closeAddTaskModal}
+						class="w-8 h-8 flex items-center justify-center hover:bg-gray-800 rounded-lg text-gray-400 touch-manipulation"
+						aria-label="Close"><X size={18} /></button>
+				</div>
+
+				<div class="space-y-3">
+					<div>
+						<label for="task-title" class="block text-xs font-medium text-gray-400 mb-1">Title *</label>
+						<input id="task-title" type="text" bind:value={newTask.title}
+							class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							placeholder="Task title" />
 					</div>
 
-					<div class="space-y-4">
+					<div>
+						<label for="task-description" class="block text-xs font-medium text-gray-400 mb-1">Description</label>
+						<textarea id="task-description" bind:value={newTask.description}
+							class="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+							placeholder="Optional" rows="2"></textarea>
+					</div>
+
+					<div class="grid grid-cols-2 gap-2">
 						<div>
-							<label for="task-title" class="block text-sm font-medium text-gray-300 mb-1">
-								Task Title *
-							</label>
-							<input
-								id="task-title"
-								type="text"
-								bind:value={newTask.title}
-							class="w-full min-h-[44px] px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-								placeholder="Enter task title"
-							/>
+							<label for="task-priority" class="block text-xs font-medium text-gray-400 mb-1">Priority</label>
+							<select id="task-priority" bind:value={newTask.priority}
+								class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+								<option value="low">Low</option>
+								<option value="medium">Medium</option>
+								<option value="high">High</option>
+							</select>
 						</div>
-
 						<div>
-							<label for="task-description" class="block text-sm font-medium text-gray-300 mb-1">
-								Description
-							</label>
-							<textarea
-								id="task-description"
-								bind:value={newTask.description}
-							class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-								placeholder="Add details (optional)"
-								rows="3"
-							></textarea>
+							<label for="task-status" class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+							<select id="task-status" bind:value={newTask.status}
+								class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+								<option value="todo">To Do</option>
+								<option value="in-progress">In Progress</option>
+								<option value="done">Done</option>
+							</select>
 						</div>
+					</div>
 
-						<div class="grid grid-cols-2 gap-3">
-							<div>
-								<label for="task-priority" class="block text-sm font-medium text-gray-300 mb-1">
-									Priority
-								</label>
-								<select
-									id="task-priority"
-									bind:value={newTask.priority}
-									class="w-full min-h-[44px] px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-								>
-									<option value="low">Low</option>
-									<option value="medium">Medium</option>
-									<option value="high">High</option>
-								</select>
-							</div>
+					<div>
+						<label for="task-due-date" class="block text-xs font-medium text-gray-400 mb-1">Due Date</label>
+						<input id="task-due-date" type="date" bind:value={newTask.due_date}
+							class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
+					</div>
 
-							<div>
-								<label for="task-status" class="block text-sm font-medium text-gray-300 mb-1">
-									Status
-								</label>
-								<select
-									id="task-status"
-									bind:value={newTask.status}
-									class="w-full min-h-[44px] px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-								>
-									<option value="todo">To Do</option>
-									<option value="in-progress">In Progress</option>
-									<option value="done">Done</option>
-								</select>
-							</div>
-						</div>
-
-						<div>
-							<label for="task-due-date" class="block text-sm font-medium text-gray-300 mb-1">
-								Due Date
-							</label>
-							<input
-								id="task-due-date"
-								type="date"
-								bind:value={newTask.due_date}
-								class="w-full min-h-[44px] px-4 py-3 bg-gray-800 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
-							/>
-						</div>
-
-						<div class="flex gap-3 pt-4">
-							<button
-								onclick={handleAddTask}
-								class="flex-1 min-h-[48px] px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg active:scale-95 transition font-medium text-base touch-manipulation"
-							>
-								Create Task
-							</button>
-							<button
-								onclick={closeAddTaskModal}
-								class="flex-1 min-h-[48px] px-5 py-3 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 active:bg-gray-500 transition font-medium text-base touch-manipulation"
-							>
-								Cancel
-							</button>
-						</div>
+					<div class="flex gap-2 pt-1">
+						<button onclick={handleAddTask}
+							class="flex-1 h-10 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:scale-95 transition touch-manipulation">
+							Create Task
+						</button>
+						<button onclick={closeAddTaskModal}
+							class="flex-1 h-10 bg-gray-700 text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-600 touch-manipulation">
+							Cancel
+						</button>
 					</div>
 				</div>
 			</div>
-		{/if}
+		</div>
+	{/if}
 </div>

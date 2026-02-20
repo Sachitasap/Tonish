@@ -674,7 +674,7 @@
 		</div>
 	{:else if activeView === 'kanban'}
 		<!-- Kanban Board -->
-		<div class="overflow-x-auto -mx-4 sm:mx-0 pb-4 touch-pan-y">
+		<div class="overflow-x-auto -mx-4 sm:mx-0 pb-4 touch-pan-x">
 			<div class="flex gap-4 px-4 sm:px-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6">
 			<!-- To Do Column -->
 			<section class="bg-gray-800 rounded-2xl p-4 min-w-[280px] snap-start md:min-w-0">
