@@ -109,17 +109,8 @@
 	const matrixCompleted = $derived(matrixTasks.filter((task) => task.status === 'done').length);
 </script>
 
-<div class="min-h-screen bg-gray-950">
-	<div class="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
-		<!-- Header -->
-		<div class="flex items-center justify-between py-3 sm:py-4">
-			<div class="flex items-center gap-3">
-				<div>
-					<h1 class="text-lg sm:text-xl font-bold text-white">Dashboard</h1>
-				</div>
-			</div>
-		</div>
-		<!-- Compact 3-Section Layout -->
+<div class="max-w-[1600px] mx-auto">
+	<!-- Compact 3-Section Layout -->
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
 			
 			<!-- Section 1: Task Summary (2x2 Grid) -->
@@ -317,6 +308,5 @@
 					{/if}
 				</a>
 			</div>
-		</div>
 	</div>
 </div>

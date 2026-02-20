@@ -445,91 +445,76 @@
 	}
 </script>
 
-<div class="space-y-6">
-	<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-		<div class="flex items-center gap-3">
-			<h1 class="text-xl sm:text-2xl font-bold text-white">MyFlow</h1>
-		</div>
+<svelte:head>
+	<title>MyFlow - Tonish</title>
+</svelte:head>
+
+<div class="max-w-[1600px] mx-auto">
+	<!-- View Switcher + Actions row + action buttons row -->
+	<div class="flex flex-wrap gap-2 bg-gray-900 rounded-lg shadow border border-gray-800 p-2 mb-2" role="tablist" aria-label="View switcher">
+			<button
+				type="button"
+				role="tab"
+				aria-selected={activeView === 'kanban'}
+				onclick={() => setActiveView('kanban')}
+				class={`flex-1 min-w-[130px] px-4 py-2.5 min-h-[44px] rounded-md text-sm font-medium transition inline-flex items-center justify-center gap-2 touch-manipulation ${activeView === 'kanban' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 active:bg-gray-700'}`}
+			>
+				<LayoutGrid size={16} />
+				Kanban Board
+			</button>
+			<button
+				type="button"
+				role="tab"
+				aria-selected={activeView === 'matrix'}
+				onclick={() => setActiveView('matrix')}
+				class={`flex-1 min-w-[130px] px-4 py-2.5 min-h-[44px] rounded-md text-sm font-medium transition inline-flex items-center justify-center gap-2 touch-manipulation ${activeView === 'matrix' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 active:bg-gray-700'}`}
+			>
+				<GridIcon size={16} />
+			Eisenhower
+		</button>
+		<!-- Action buttons sit in the same bar -->
 		{#if activeView === 'kanban'}
-			<div class="flex flex-wrap gap-3">
+			<div class="flex gap-2 ml-auto">
 				<button
-					onclick={() => {
-						showKanbanQuickTask = !showKanbanQuickTask;
-						if (showKanbanQuickTask) showMatrixQuickTask = false;
-					}}
-					class="bg-green-600 text-white px-6 py-3 min-h-[48px] rounded-full text-base font-medium hover:bg-green-700 active:bg-green-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 inline-flex items-center gap-2 touch-manipulation"
-				>
-					<Zap size={20} /> Quick Task
-				</button>
+					onclick={() => { showKanbanQuickTask = !showKanbanQuickTask; if (showKanbanQuickTask) showMatrixQuickTask = false; }}
+					class="bg-green-600 text-white px-3 py-2 min-h-[40px] rounded-md text-sm font-medium hover:bg-green-700 inline-flex items-center gap-1.5 touch-manipulation"
+				><Zap size={14} /> Quick</button>
 				<button
 					onclick={() => showAddTask = !showAddTask}
-					class="bg-blue-600 text-white px-6 py-3 min-h-[48px] rounded-full text-base font-medium hover:bg-blue-700 active:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 inline-flex items-center gap-2 touch-manipulation"
-				>
-					<Plus size={20} /> Add Task
-				</button>
+					class="bg-blue-600 text-white px-3 py-2 min-h-[40px] rounded-md text-sm font-medium hover:bg-blue-700 inline-flex items-center gap-1.5 touch-manipulation"
+				><Plus size={14} /> Add</button>
 			</div>
 		{:else if activeView === 'matrix'}
-			<div class="flex flex-wrap gap-3">
-				<button
-					onclick={() => {
-						showMatrixQuickTask = !showMatrixQuickTask;
-						if (showMatrixQuickTask) showKanbanQuickTask = false;
-					}}
-					class="bg-purple-600 text-white px-6 py-3 min-h-[48px] rounded-full text-base font-medium hover:bg-purple-700 active:bg-purple-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 inline-flex items-center gap-2 touch-manipulation"
-				>
-					<Zap size={20} /> Matrix Quick Task
-				</button>
-			</div>
+			<button
+				onclick={() => { showMatrixQuickTask = !showMatrixQuickTask; if (showMatrixQuickTask) showKanbanQuickTask = false; }}
+				class="ml-auto bg-purple-600 text-white px-3 py-2 min-h-[40px] rounded-md text-sm font-medium hover:bg-purple-700 inline-flex items-center gap-1.5 touch-manipulation"
+			><Zap size={14} /> Quick</button>
 		{/if}
 	</div>
-	
-	<!-- View Switcher -->
-	<div class="flex flex-wrap gap-2 bg-gray-900 rounded-2xl shadow p-2" role="tablist" aria-label="View switcher">
-		<button
-			type="button"
-			role="tab"
-			aria-selected={activeView === 'kanban'}
-			onclick={() => setActiveView('kanban')}
-			class={`flex-1 min-w-[140px] px-5 py-3.5 min-h-[48px] rounded-xl text-base font-medium transition inline-flex items-center justify-center gap-2 touch-manipulation ${activeView === 'kanban' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 active:bg-gray-700'}`}
-		>
-			<LayoutGrid size={18} />
-			Kanban Board
-		</button>
-		<button
-			type="button"
-			role="tab"
-			aria-selected={activeView === 'matrix'}
-			onclick={() => setActiveView('matrix')}
-			class={`flex-1 min-w-[140px] px-5 py-3.5 min-h-[48px] rounded-xl text-base font-medium transition inline-flex items-center justify-center gap-2 touch-manipulation ${activeView === 'matrix' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800 active:bg-gray-700'}`}
-		>
-			<GridIcon size={18} />
-			Eisenhower Matrix
-		</button>
-	</div>
-	
-	<!-- Quick Task Input -->
-	{#if showKanbanQuickTask && activeView === 'kanban'}
-		<div class="bg-gray-800 rounded-lg shadow p-5">
-			<h2 class="text-base font-semibold mb-3 inline-flex items-center gap-2 text-white"><Zap size={18} /> Quick Task</h2>
-			<form onsubmit={(e) => { e.preventDefault(); handleQuickTask(); }} class="flex flex-col gap-3 sm:flex-row">
-				<input
-					type="text"
-					bind:value={quickTaskTitle}
-					placeholder="Type task and press Enter..."
+		
+		<!-- Quick Task Input -->
+		{#if showKanbanQuickTask && activeView === 'kanban'}
+			<div class="bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4">
+				<h2 class="text-sm font-semibold mb-3 inline-flex items-center gap-2 text-white"><Zap size={16} /> Quick Task</h2>
+				<form onsubmit={(e) => { e.preventDefault(); handleQuickTask(); }} class="flex flex-col gap-2 sm:flex-row">
+					<input
+						type="text"
+						bind:value={quickTaskTitle}
+						placeholder="Type task and press Enter..."
 						id={quickTaskInputId}
 						aria-label="Quick task title"
-					class="flex-1 px-5 py-4 min-h-[48px] bg-gray-800 border border-gray-700 rounded-xl text-base text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 touch-manipulation"
-				/>
+						class="flex-1 px-4 py-2.5 min-h-[44px] bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 touch-manipulation"
+					/>
 				<button
 					type="submit"
-					class="bg-green-600 text-white px-8 py-4 min-h-[48px] rounded-xl font-semibold hover:bg-green-700 active:bg-green-800 touch-manipulation"
+					class="bg-green-600 text-white px-5 py-2.5 min-h-[44px] rounded-lg font-medium text-sm hover:bg-green-700 active:bg-green-800 touch-manipulation"
 				>
 					Add
 				</button>
 				<button
 					type="button"
 					onclick={() => { showKanbanQuickTask = false; quickTaskTitle = ''; }}
-					class="bg-gray-700 text-gray-300 px-6 py-4 min-h-[48px] rounded-xl hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
+					class="bg-gray-700 text-gray-300 px-5 py-2.5 min-h-[44px] rounded-lg text-sm hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
 				>
 					Cancel
 				</button>
@@ -538,34 +523,34 @@
 	{/if}
 
 	{#if showMatrixQuickTask && activeView === 'matrix'}
-		<div class="bg-gray-800 rounded-lg shadow p-5">
-			<h2 class="text-base font-semibold mb-3 inline-flex items-center gap-2 text-white"><Zap size={18} /> Matrix Quick Task</h2>
-			<form onsubmit={(e) => { e.preventDefault(); handleMatrixQuickTask(); }} class="grid gap-4 md:grid-cols-3">
+		<div class="bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4">
+			<h2 class="text-sm font-semibold mb-3 inline-flex items-center gap-2 text-white"><Zap size={16} /> Matrix Quick Task</h2>
+			<form onsubmit={(e) => { e.preventDefault(); handleMatrixQuickTask(); }} class="grid gap-3 md:grid-cols-3">
 				<input
 					type="text"
 					bind:value={matrixQuickTaskTitle}
 					placeholder="Task title"
-					class="md:col-span-2 px-5 py-4 min-h-[48px] bg-gray-800 border border-gray-700 rounded-xl text-base text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 touch-manipulation"
+					class="md:col-span-2 px-4 py-2.5 min-h-[44px] bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 touch-manipulation"
 				/>
 				<select
 					bind:value={matrixQuickQuadrant}
-					class="px-5 py-4 min-h-[48px] bg-gray-800 border border-gray-700 rounded-xl text-base text-white focus:outline-none focus:ring-2 focus:ring-purple-500 touch-manipulation"
+					class="px-4 py-2.5 min-h-[44px] bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 touch-manipulation"
 				>
 					{#each matrixQuadrantOptions as option}
 						<option value={option.value}>{option.label}</option>
 					{/each}
 				</select>
-				<div class="md:col-span-3 flex flex-col gap-3 sm:flex-row">
+				<div class="md:col-span-3 flex flex-col gap-2 sm:flex-row">
 					<button
 						type="submit"
-						class="flex-1 bg-purple-600 text-white px-8 py-4 min-h-[48px] rounded-xl font-semibold hover:bg-purple-700 active:bg-purple-800 touch-manipulation"
+						class="flex-1 bg-purple-600 text-white px-5 py-2.5 min-h-[44px] rounded-lg font-medium text-sm hover:bg-purple-700 active:bg-purple-800 touch-manipulation"
 					>
 						Add
 					</button>
 					<button
 						type="button"
 						onclick={() => { showMatrixQuickTask = false; matrixQuickTaskTitle = ''; }}
-						class="flex-1 bg-gray-700 text-gray-300 px-6 py-4 min-h-[48px] rounded-xl hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
+						class="flex-1 bg-gray-700 text-gray-300 px-5 py-2.5 min-h-[44px] rounded-lg text-sm hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
 					>
 						Cancel
 					</button>

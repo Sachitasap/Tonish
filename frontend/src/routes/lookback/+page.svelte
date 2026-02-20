@@ -163,35 +163,26 @@
 	<title>LookBack - Tonish</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-950 p-3 sm:p-4">
-	<div class="max-w-7xl mx-auto">
-		<!-- Header -->
-		<div class="mb-4 sm:mb-6">
-			<div class="flex items-center gap-3 mb-2">
-				<Archive class="text-purple-400" size={24} />
-				<h1 class="text-2xl sm:text-3xl font-bold text-white">LookBack</h1>
-			</div>
-		</div>
-
-		<!-- Filters -->
-		<div class="bg-gray-900 rounded-lg shadow-sm border border-gray-800 p-4 mb-6">
-			<div class="flex flex-col gap-4 md:flex-row md:items-center">
+<div class="max-w-[1600px] mx-auto">
+	<!-- Filters -->
+		<div class="bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4 mb-3">
+			<div class="flex flex-col gap-3 md:flex-row md:items-center">
 				<div class="flex flex-wrap gap-2">
 					<button
 						onclick={() => filterType = 'all'}
-						class="px-4 py-2 rounded-lg font-medium transition {filterType === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition {filterType === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
 					>
 						All ({archivedTasks.length})
 					</button>
 					<button
 						onclick={() => filterType = 'kanban'}
-						class="px-4 py-2 rounded-lg font-medium transition {filterType === 'kanban' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition {filterType === 'kanban' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
 					>
 						Kanban ({kanbanTasks.length})
 					</button>
 					<button
 						onclick={() => filterType = 'matrix'}
-						class="px-4 py-2 rounded-lg font-medium transition {filterType === 'matrix' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition {filterType === 'matrix' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
 					>
 						Matrix ({matrixTasks.length})
 					</button>
@@ -200,7 +191,7 @@
 				<div class="flex gap-2 w-full md:w-auto md:ml-auto">
 					<select
 						bind:value={sortBy}
-						class="w-full md:w-auto px-4 py-2 bg-gray-800 border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+						class="w-full md:w-auto px-3 py-2 min-h-[44px] bg-gray-800 border border-gray-700 text-white text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
 					>
 						<option value="date">Sort by Date</option>
 						<option value="type">Sort by Type</option>
@@ -211,24 +202,24 @@
 
 		<!-- Bulk Action Bar -->
 		{#if selectedTaskIds.size > 0}
-			<div class="bg-blue-950 border border-blue-800 rounded-lg shadow-lg p-4 mb-6 flex items-center justify-between">
+			<div class="bg-blue-950 border border-blue-800 rounded-lg p-3 mb-3 flex items-center justify-between">
 				<div class="flex items-center gap-3">
-					<div class="text-white font-semibold">
+					<div class="text-white font-semibold text-sm">
 						{selectedTaskIds.size} item{selectedTaskIds.size > 1 ? 's' : ''} selected
 					</div>
 					<button
 						onclick={clearSelection}
-						class="text-sm text-blue-300 hover:text-blue-200 underline touch-manipulation"
+						class="text-xs text-blue-300 hover:text-blue-200 underline touch-manipulation"
 					>
-						Clear selection
+						Clear
 					</button>
 				</div>
 				<button
 					onclick={handleBulkDelete}
-					class="min-h-[44px] px-5 py-2.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg font-medium transition flex items-center gap-2 touch-manipulation"
+					class="min-h-[44px] px-4 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-md font-medium text-sm transition flex items-center gap-2 touch-manipulation"
 				>
-					<Trash2 size={20} />
-					<span>Delete Selected</span>
+					<Trash2 size={16} />
+					<span>Delete</span>
 				</button>
 			</div>
 		{/if}
@@ -237,67 +228,66 @@
 		{#if loading}
 			<div class="text-center py-12">
 				<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-				<p class="mt-4 text-gray-400">Loading archived tasks...</p>
+				<p class="mt-4 text-gray-400 text-sm">Loading archived tasks...</p>
 			</div>
 		{:else if filteredTasks().length === 0}
-			<div class="bg-gray-900 border border-gray-800 rounded-lg shadow-sm p-12 text-center">
-				<Archive class="mx-auto text-gray-600 mb-4" size={48} />
-				<h3 class="text-xl font-semibold text-gray-200 mb-2">No archived tasks</h3>
-				<p class="text-gray-400">Deleted or completed tasks will appear here</p>
-			</div>
+		<div class="bg-gray-900 border border-gray-800 rounded-lg p-10 text-center">
+			<Archive class="mx-auto text-gray-600 mb-3" size={36} />
+			<p class="text-gray-400 text-sm">No archived tasks</p>
+		</div>
 		{:else}
-			<div class="space-y-6">
-				<div class="hidden md:block bg-gray-900 border border-gray-800 rounded-lg shadow-sm overflow-hidden">
+			<div class="space-y-3">
+				<div class="hidden md:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
 					<div class="overflow-x-auto">
 						<table class="w-full">
 							<thead class="bg-gray-800 border-b border-gray-700">
 								<tr>
-									<th class="px-6 py-4 text-left w-12">
+									<th class="px-4 py-3 text-left w-12">
 										<input
 											type="checkbox"
 											checked={isSelectAllChecked}
 											onchange={toggleSelectAll}
-											class="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+											class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
 											aria-label="Select all tasks"
 										/>
 									</th>
-									<th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Date Deleted/Archived</th>
-									<th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Kanban Tasks</th>
-									<th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Eisenhower Matrix</th>
-									<th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
-									<th class="px-6 py-4 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
+									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Date</th>
+									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Kanban Tasks</th>
+									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Matrix</th>
+									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+									<th class="px-4 py-3 text-right text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-gray-800">
 								{#each filteredTasks() as task}
 									<tr class="hover:bg-gray-800 transition {selectedTaskIds.has(task.id) ? 'bg-blue-950/30' : ''}">
-										<td class="px-6 py-4">
+										<td class="px-4 py-3">
 											<input
 												type="checkbox"
 												checked={selectedTaskIds.has(task.id)}
 												onchange={() => toggleTaskSelection(task.id)}
-												class="w-5 h-5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+												class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
 												aria-label="Select task"
 											/>
 										</td>
-										<td class="px-6 py-4 whitespace-nowrap">
+										<td class="px-4 py-3 whitespace-nowrap">
 											<div class="flex items-center gap-2">
-												<Calendar size={16} class="text-gray-500" />
-												<span class="text-sm text-gray-200">{formatDate(task.deleted_at || task.completed_at || task.updated_at)}</span>
+												<Calendar size={14} class="text-gray-500" />
+												<span class="text-xs text-gray-200">{formatDate(task.deleted_at || task.completed_at || task.updated_at)}</span>
 											</div>
 										</td>
-										<td class="px-6 py-4">
+										<td class="px-4 py-3">
 											{#if task.task_type === 'kanban'}
 												<div class="max-w-xs">
-													<div class="font-medium text-gray-200">{task.title}</div>
+													<div class="font-medium text-gray-200 text-sm">{task.title}</div>
 													{#if task.description}
-														<div class="text-sm text-gray-400 truncate">{task.description}</div>
+														<div class="text-xs text-gray-400 truncate">{task.description}</div>
 													{/if}
-													<div class="flex gap-2 mt-1">
-															<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-950 text-blue-300">
+													<div class="flex gap-1.5 mt-1">
+															<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-950 text-blue-300">
 																{task.status}
 															</span>
-															<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-800 text-gray-300">
+															<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-300">
 															{task.priority}
 														</span>
 													</div>
@@ -325,15 +315,15 @@
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										{#if task.deleted_at}
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-950 text-red-300">
 												Deleted
 											</span>
 										{:else if task.is_archived}
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-950 text-yellow-300">
 												Archived
 											</span>
 										{:else if task.completed_at}
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-950 text-indigo-300">
 												Completed
 											</span>
 										{/if}
@@ -401,11 +391,11 @@
 							{/if}
 							<div class="flex flex-wrap gap-2">
 								{#if task.deleted_at}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Deleted</span>
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-950 text-red-300">Deleted</span>
 								{:else if task.is_archived}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Archived</span>
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-950 text-yellow-300">Archived</span>
 								{:else if task.completed_at}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">Completed</span>
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-950 text-indigo-300">Completed</span>
 								{/if}
 								{#if task.task_type === 'kanban'}
 									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-950 text-blue-300">{task.status}</span>
@@ -430,5 +420,4 @@
 				</div>
 			</div>
 		{/if}
-	</div>
 </div>

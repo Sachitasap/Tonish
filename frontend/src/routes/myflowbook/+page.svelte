@@ -121,15 +121,19 @@
 	}
 </script>
 
-<div class="flex flex-col lg:flex-row min-h-screen bg-gray-950">
+<svelte:head>
+	<title>MyFlowBook - Tonish</title>
+</svelte:head>
+
+<div class="flex flex-col lg:flex-row">
 	<!-- Sidebar -->
 	<div class={`${sidebarCollapsed ? 'lg:w-16' : 'lg:w-72'} w-full bg-gray-900 border-r border-gray-800 transition-all duration-200 lg:flex-shrink-0 overflow-hidden`}>
-		<div class="p-4 h-full flex flex-col">
+		<div class="p-3 sm:p-4 h-full flex flex-col">
 			<!-- Header -->
-			<div class="flex justify-between items-center mb-4">
+			<div class="flex justify-between items-center mb-3">
 				{#if !sidebarCollapsed}
 					<div class="flex items-center gap-2">
-						<h2 class="text-lg font-semibold text-white">Notebooks</h2>
+						<h2 class="text-base font-semibold text-white">Notebooks</h2>
 					</div>
 				{/if}
 				<button
@@ -138,9 +142,9 @@
 					title="Toggle"
 				>
 					{#if sidebarCollapsed}
-						<Menu size={18} />
+						<Menu size={16} />
 					{:else}
-						<X size={18} />
+						<X size={16} />
 					{/if}
 				</button>
 			</div>
@@ -149,23 +153,23 @@
 				<!-- New Button -->
 				<button
 					onclick={() => showAddNotebook = !showAddNotebook}
-					class="w-full flex items-center justify-center gap-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium mb-4"
+					class="w-full flex items-center justify-center gap-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium mb-3"
 				>
-					<Plus size={16} /> New
+					<Plus size={14} /> New
 				</button>
 				
 				<!-- List -->
 				<div class="flex-1 overflow-y-auto space-y-2">
 					{#if pinnedNotebooks.length > 0}
 						<div class="mb-3">
-							<h3 class="text-xs font-semibold text-gray-400 mb-2 px-2 uppercase">Pinned</h3>
+							<h3 class="text-[10px] font-semibold text-gray-400 mb-2 px-2 uppercase tracking-wide">Pinned</h3>
 							{#each pinnedNotebooks as nb}
 								<a
 									href="/myflowbook/{nb.id}"
-									class="block p-2 bg-yellow-900 border border-yellow-800 rounded-lg hover:bg-yellow-50 transition text-sm"
+									class="block p-2 bg-yellow-900 border border-yellow-800 rounded-md hover:bg-yellow-800 transition text-sm"
 								>
-									<div class="font-medium text-white truncate">{nb.name}</div>
-									<div class="text-xs text-gray-400">{nb.pages?.length || 0}p</div>
+									<div class="font-medium text-white truncate text-sm">{nb.name}</div>
+									<div class="text-xs text-gray-400">{nb.pages?.length || 0} pages</div>
 								</a>
 							{/each}
 						</div>
@@ -173,14 +177,14 @@
 					
 					{#if regularNotebooks.length > 0}
 						<div>
-							<h3 class="text-xs font-semibold text-gray-400 mb-2 px-2 uppercase">All</h3>
+							<h3 class="text-[10px] font-semibold text-gray-400 mb-2 px-2 uppercase tracking-wide">All</h3>
 							{#each regularNotebooks as nb}
 								<a
 									href="/myflowbook/{nb.id}"
-									class="block p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition text-sm"
+									class="block p-2 bg-gray-800 rounded-md hover:bg-gray-700 transition text-sm border border-gray-700"
 								>
-									<div class="font-medium text-white truncate">{nb.name}</div>
-									<div class="text-xs text-gray-400">{nb.pages?.length || 0}p</div>
+									<div class="font-medium text-white truncate text-sm">{nb.name}</div>
+									<div class="text-xs text-gray-400">{nb.pages?.length || 0} pages</div>
 								</a>
 							{/each}
 						</div>
@@ -188,16 +192,16 @@
 				</div>
 				
 				<!-- Footer -->
-				<a href="/" class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded text-sm text-gray-300 border-t mt-3 pt-3">
-					<Home size={16} /> Home
+				<a href="/" class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded text-sm text-gray-300 border-t border-gray-800 mt-3 pt-3">
+					<Home size={14} /> Home
 				</a>
 			{:else}
 				<div class="flex flex-col items-center gap-3 mt-4">
-					<button onclick={() => showAddNotebook = !showAddNotebook} class="p-2 hover:bg-gray-100 rounded" title="New">
-						<Plus size={18} />
+					<button onclick={() => showAddNotebook = !showAddNotebook} class="p-2 hover:bg-gray-800 rounded" title="New">
+						<Plus size={16} />
 					</button>
-					<a href="/" class="p-2 hover:bg-gray-100 rounded" title="Home">
-						<Home size={18} />
+					<a href="/" class="p-2 hover:bg-gray-800 rounded" title="Home">
+						<Home size={16} />
 					</a>
 				</div>
 			{/if}
@@ -205,8 +209,8 @@
 	</div>
 	
 	<!-- Main -->
-	<div class="flex-1 bg-gray-900 overflow-auto">
-		<div class="max-w-4xl mx-auto p-6 space-y-4">
+	<div class="flex-1 bg-gray-950 overflow-auto">
+		<div class="max-w-[1200px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 space-y-3">
 		<!-- Notification -->
 		{#if showNotification}
 			<div class="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md z-50 text-sm">
@@ -214,40 +218,30 @@
 			</div>
 		{/if}
 		
-		<!-- Header -->
-		<div class="flex justify-between items-center">
-			<h1 class="text-3xl font-bold text-white">MyFlowBook</h1>
+		<!-- Header: just search + new button -->
+		<div class="flex gap-2 items-center">
+			<div class="flex-1 bg-gray-900 rounded-lg border border-gray-800 p-2 flex items-center gap-2">
+				<Search size={14} class="text-gray-400 ml-1" />
+				<input
+					type="text"
+					bind:value={searchQuery}
+					placeholder="Search notebooks..."
+					class="flex-1 px-2 py-1.5 border-none bg-gray-900 text-white placeholder:text-gray-500 focus:outline-none text-sm"
+				/>
+				{#if searchQuery}
+					<button onclick={() => searchQuery = ''} class="mr-1 p-1 hover:bg-gray-800 rounded text-gray-400"><X size={14} /></button>
+				{/if}
+			</div>
 			<button
 				onclick={() => showAddNotebook = !showAddNotebook}
-				class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-medium"
-			>
-				<Plus size={16} /> New
-			</button>
-		</div>
-		
-		<!-- Search -->
-		<div class="bg-gray-800 rounded-lg p-2 flex items-center gap-2">
-			<Search size={16} class="text-gray-400 ml-1" />
-			<input
-				type="text"
-				bind:value={searchQuery}
-				placeholder="Search..."
-				class="flex-1 px-2 py-1 border-none bg-gray-800 text-white placeholder:text-gray-500 focus:outline-none text-sm"
-			/>
-			{#if searchQuery}
-				<button
-					onclick={() => searchQuery = ''}
-					class="mr-1 p-1 hover:bg-gray-700 rounded text-gray-400"
-				>
-					<X size={16} />
-				</button>
-			{/if}
+				class="bg-blue-600 text-white px-3 py-2 min-h-[40px] rounded-lg hover:bg-blue-700 transition flex items-center gap-1.5 text-sm font-medium flex-shrink-0"
+			><Plus size={14} /> New</button>
 		</div>
 		
 		<!-- Create Form -->
 		{#if showAddNotebook}
-			<div class="bg-gray-800 rounded-lg border border-gray-700 p-4">
-				<h2 class="font-bold text-white mb-3">New Notebook</h2>
+			<div class="bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4">
+				<h2 class="font-semibold text-white mb-3 text-sm">New Notebook</h2>
 				<form onsubmit={(e) => { e.preventDefault(); handleAddNotebook(); }} class="space-y-2">
 					<input
 						type="text"
@@ -294,38 +288,38 @@
 				</button>
 			</div>
 		{:else if filteredNotebooks.length === 0}
-			<div class="bg-gray-800 rounded-lg p-8 text-center text-gray-400 text-sm">
+			<div class="bg-gray-900 rounded-lg border border-gray-800 p-8 text-center text-gray-400 text-sm">
 				No match
 			</div>
 		{:else}
-			<div class="space-y-4">
+			<div class="space-y-3">
 				{#if pinnedNotebooks.length > 0}
 					<div>
 						<h3 class="text-sm font-semibold text-gray-300 mb-2">Pinned ({pinnedNotebooks.length})</h3>
 						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
 							{#each pinnedNotebooks as nb}
-								<div class="bg-yellow-900 border-2 border-yellow-700 rounded-lg p-4">
+								<div class="bg-yellow-900 border border-yellow-700 rounded-lg p-3">
 									<div class="flex justify-between items-start gap-2 mb-2">
 										<a href="/myflowbook/{nb.id}" class="flex-1 min-w-0">
-											<h3 class="font-semibold text-white truncate hover:text-blue-600 text-sm">{nb.name}</h3>
+											<h3 class="font-semibold text-white truncate hover:text-blue-400 text-sm">{nb.name}</h3>
 										</a>
 										<button
 											onclick={() => handleTogglePin(nb)}
-											class="text-yellow-600 hover:text-yellow-700 p-1 flex-shrink-0"
+											class="text-yellow-400 hover:text-yellow-300 p-1 flex-shrink-0"
 										>
-											<Pin size={16} class="fill-current" />
+											<Pin size={14} class="fill-current" />
 										</button>
 									</div>
-									<p class="text-xs text-gray-400 mb-3">{nb.pages?.length || 0} pages</p>
+									<p class="text-xs text-gray-400 mb-2">{nb.pages?.length || 0} pages</p>
 									<div class="flex gap-2">
-										<a href="/myflowbook/{nb.id}" class="flex-1 bg-blue-600 text-white text-center px-3 py-1.5 rounded text-xs font-medium hover:bg-blue-700 transition">
+										<a href="/myflowbook/{nb.id}" class="flex-1 bg-blue-600 text-white text-center px-3 py-1.5 rounded-md text-xs font-medium hover:bg-blue-700 transition">
 											Open
 										</a>
 										<button
 											onclick={() => handleDeleteNotebook(nb.id)}
-											class="bg-red-950 text-red-300 hover:bg-red-900 px-2 py-1.5 rounded text-xs"
+											class="bg-red-950 text-red-300 hover:bg-red-900 px-2 py-1.5 rounded-md text-xs"
 										>
-											<Trash2 size={14} />
+											<Trash2 size={12} />
 										</button>
 									</div>
 								</div>
@@ -339,28 +333,28 @@
 						<h3 class="text-sm font-semibold text-gray-300 mb-2">All ({regularNotebooks.length})</h3>
 						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
 							{#each regularNotebooks as nb}
-								<div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
+								<div class="bg-gray-900 border border-gray-800 rounded-lg p-3 hover:border-gray-700 transition-all">
 									<div class="flex justify-between items-start gap-2 mb-2">
 										<a href="/myflowbook/{nb.id}" class="flex-1 min-w-0">
-											<h3 class="font-semibold text-white truncate hover:text-blue-600 text-sm">{nb.name}</h3>
+											<h3 class="font-semibold text-white truncate hover:text-blue-400 text-sm">{nb.name}</h3>
 										</a>
 										<button
 											onclick={() => handleTogglePin(nb)}
-											class="text-gray-400 hover:text-yellow-500 p-1 flex-shrink-0"
+											class="text-gray-400 hover:text-yellow-400 p-1 flex-shrink-0"
 										>
-											<Pin size={16} />
+											<Pin size={14} />
 										</button>
 									</div>
-									<p class="text-xs text-gray-400 mb-3">{nb.pages?.length || 0} pages</p>
+									<p class="text-xs text-gray-400 mb-2">{nb.pages?.length || 0} pages</p>
 									<div class="flex gap-2">
-										<a href="/myflowbook/{nb.id}" class="flex-1 bg-blue-600 text-white text-center px-3 py-1.5 rounded text-xs font-medium hover:bg-blue-700 transition">
+										<a href="/myflowbook/{nb.id}" class="flex-1 bg-blue-600 text-white text-center px-3 py-1.5 rounded-md text-xs font-medium hover:bg-blue-700 transition">
 											Open
 										</a>
 										<button
 											onclick={() => handleDeleteNotebook(nb.id)}
-											class="bg-red-950 text-red-300 hover:bg-red-900 px-2 py-1.5 rounded text-xs"
+											class="bg-red-950 text-red-300 hover:bg-red-900 px-2 py-1.5 rounded-md text-xs"
 										>
-											<Trash2 size={14} />
+											<Trash2 size={12} />
 										</button>
 									</div>
 								</div>

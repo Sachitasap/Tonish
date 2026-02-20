@@ -290,78 +290,49 @@
 	);
 </script>
 
-<div class="min-h-screen bg-gray-950 p-3 sm:p-4 md:p-6">
-	<div class="max-w-7xl mx-auto space-y-6">
-		<!-- Header -->
-		<div class="flex items-center justify-between">
-			<div class="flex items-center gap-3">
-				<div class="rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-3">
-					<CalendarIcon size={32} class="text-white" />
-				</div>
-				<div>
-					<h1 class="text-2xl sm:text-3xl font-bold text-white">Task Calendar</h1>
-					<p class="text-gray-400">View and manage your tasks by date</p>
-				</div>
-			</div>
-			<div class="flex items-center gap-3">
-				<button
-					onclick={() => openAddTaskModal()}
-					class="min-h-[44px] px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg active:scale-95 transition flex items-center gap-2 touch-manipulation"
-				>
-					<Plus size={22} />
-					<span class="hidden md:inline font-medium">Add Task</span>
-				</button>
-				<a
-					href="/"
-					class="min-h-[44px] px-5 py-3 bg-gray-800 text-gray-200 rounded-lg shadow-sm hover:shadow-md active:scale-95 transition border border-gray-700 flex items-center touch-manipulation"
-				>
-					← Back
-				</a>
-			</div>
-		</div>
+<svelte:head>
+	<title>Calendar - Tonish</title>
+</svelte:head>
 
-		{#if loading}
-			<div class="text-center py-12">
-				<p class="text-gray-400">Loading calendar...</p>
-			</div>
+<div class="max-w-[1600px] mx-auto">
+	{#if loading}
+		<div class="text-center py-12">
+			<p class="text-gray-400 text-sm">Loading calendar...</p>
+		</div>
 		{:else}
-			<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
 				<!-- Calendar View -->
-				<div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-3xl shadow-xl ring-1 ring-gray-800 p-6 md:p-8">
+				<div class="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-lg p-3 sm:p-4">
 					<!-- Calendar Header -->
-					<div class="flex items-center justify-between mb-6">
-						<h2 class="text-lg sm:text-xl font-bold text-white">
-							{monthNames[currentMonth]} {currentYear}
-						</h2>
-						<div class="flex items-center gap-2">
+					<div class="flex items-center justify-between mb-3">
+						<h2 class="text-sm font-bold text-white">{monthNames[currentMonth]} {currentYear}</h2>
+						<div class="flex items-center gap-1.5">
+							<button
+								onclick={() => openAddTaskModal()}
+								class="min-h-[36px] px-2.5 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition flex items-center gap-1 text-xs font-medium touch-manipulation"
+							><Plus size={13} /> Add</button>
 							<button
 								onclick={goToToday}
-								class="min-h-[44px] px-4 py-2.5 text-sm bg-blue-950 text-blue-300 rounded-lg hover:bg-blue-900 active:scale-95 font-medium transition touch-manipulation"
-							>
-								Today
-							</button>
+								class="min-h-[36px] px-2.5 py-1 text-xs bg-blue-950 text-blue-300 rounded-md hover:bg-blue-900 font-medium transition touch-manipulation"
+							>Today</button>
 							<button
 								onclick={previousMonth}
-								class="min-w-[44px] min-h-[44px] p-2.5 hover:bg-gray-800 active:bg-gray-700 rounded-lg transition text-gray-300 touch-manipulation flex items-center justify-center"
+								class="min-w-[36px] min-h-[36px] p-1.5 hover:bg-gray-800 rounded-md transition text-gray-300 touch-manipulation flex items-center justify-center"
 								aria-label="Previous month"
-							>
-								<ChevronLeft size={26} />
-							</button>
+							><ChevronLeft size={16} /></button>
 							<button
 								onclick={nextMonth}
-								class="min-w-[44px] min-h-[44px] p-2.5 hover:bg-gray-800 active:bg-gray-700 rounded-lg transition text-gray-300 touch-manipulation flex items-center justify-center"
+								class="min-w-[36px] min-h-[36px] p-1.5 hover:bg-gray-800 rounded-md transition text-gray-300 touch-manipulation flex items-center justify-center"
 								aria-label="Next month"
-							>
-								<ChevronRight size={26} />
-							</button>
+							><ChevronRight size={16} /></button>
 						</div>
 					</div>
 
 					<!-- Calendar Grid -->
-					<div class="grid grid-cols-7 gap-2 md:gap-3">
+					<div class="grid grid-cols-7 gap-1 sm:gap-2">
 						<!-- Day Names -->
 						{#each dayNames as dayName}
-							<div class="text-center text-sm font-semibold text-gray-400 py-2">
+							<div class="text-center text-xs font-semibold text-gray-400 py-2">
 								{dayName}
 							</div>
 						{/each}
@@ -376,22 +347,22 @@
 								{@const isSelected = selectedDate === day}
 								<button
 									onclick={() => selectDate(day)}
-								class="aspect-square min-h-[50px] md:min-h-[60px] rounded-xl p-3 md:p-4 transition-all relative group touch-manipulation
-									{isToday ? 'bg-blue-500 text-white font-bold ring-2 ring-blue-600' : ''}
+								class="aspect-square min-h-[48px] md:min-h-[56px] rounded-md p-2 transition-all relative group touch-manipulation
+									{isToday ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-500' : ''}
 									{isSelected && !isToday ? 'bg-blue-950 ring-2 ring-blue-400' : ''}
 									{!isToday && !isSelected ? 'hover:bg-gray-800 active:bg-gray-700 text-gray-300' : ''}
 										{dayTasks.length > 0 ? 'font-semibold' : ''}"
 								>
 									<div class="flex flex-col h-full">
-										<span class="text-base md:text-lg font-medium {isToday ? 'text-white' : 'text-gray-300'}">
+										<span class="text-sm md:text-base font-medium {isToday ? 'text-white' : 'text-gray-300'}">
 											{day}
 										</span>
 										{#if dayTasks.length > 0}
-											<div class="flex-1 flex items-end justify-center mt-1">
-												<div class="flex gap-1">
+											<div class="flex-1 flex items-end justify-center mt-0.5">
+												<div class="flex gap-0.5">
 													{#each dayTasks.slice(0, 3) as task}
 														<div 
-															class="w-2 h-2 rounded-full
+															class="w-1.5 h-1.5 rounded-full
 																{task.status === 'done' ? 'bg-green-500' : ''}
 																{task.status === 'in-progress' ? 'bg-blue-500' : ''}
 																{task.status === 'todo' ? 'bg-gray-400' : ''}
@@ -399,7 +370,7 @@
 														></div>
 													{/each}
 													{#if dayTasks.length > 3}
-														<span class="text-xs font-bold {isToday ? 'text-white' : 'text-gray-400'}">+</span>
+														<span class="text-[10px] font-bold {isToday ? 'text-white' : 'text-gray-400'}">+</span>
 													{/if}
 												</div>
 											</div>
@@ -411,19 +382,19 @@
 					</div>
 
 					<!-- Legend -->
-					<div class="mt-6 pt-6 border-t border-gray-800">
-						<h3 class="text-sm font-semibold text-gray-300 mb-3">Status Legend</h3>
-						<div class="flex flex-wrap gap-4 text-sm">
-							<div class="flex items-center gap-2">
-								<div class="w-3.5 h-3.5 rounded-full bg-gray-400"></div>
+					<div class="mt-4 pt-4 border-t border-gray-800">
+						<h3 class="text-xs font-semibold text-gray-300 mb-2">Status Legend</h3>
+						<div class="flex flex-wrap gap-3 text-xs">
+							<div class="flex items-center gap-1.5">
+								<div class="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
 								<span class="text-gray-400">To Do</span>
 							</div>
-							<div class="flex items-center gap-2">
-								<div class="w-3.5 h-3.5 rounded-full bg-blue-500"></div>
+							<div class="flex items-center gap-1.5">
+								<div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
 								<span class="text-gray-400">In Progress</span>
 							</div>
-							<div class="flex items-center gap-2">
-								<div class="w-3.5 h-3.5 rounded-full bg-green-500"></div>
+							<div class="flex items-center gap-1.5">
+								<div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
 								<span class="text-gray-400">Completed</span>
 							</div>
 						</div>
@@ -431,7 +402,7 @@
 				</div>
 
 				<!-- Task Details Sidebar -->
-				<div class="bg-gray-900 border border-gray-800 rounded-3xl shadow-xl ring-1 ring-gray-800 p-6">
+				<div class="bg-gray-900 border border-gray-800 rounded-lg p-3 sm:p-4">
 					<!-- Monthly Summary at Top -->
 					{#if tasks.length > 0}
 					{@const monthTasks = tasks.filter(task => {
@@ -439,33 +410,33 @@
 						const taskDate = new Date(task.due_date);
 						return taskDate.getMonth() === currentMonth && taskDate.getFullYear() === currentYear;
 					})}
-					<div class="mb-6 pb-6 border-b border-gray-800 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4">
-						<h4 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
-							<CalendarIcon size={20} class="text-blue-400" />
+					<div class="mb-4 pb-4 border-b border-gray-800 bg-gray-800 rounded-lg p-3">
+						<h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+							<CalendarIcon size={14} class="text-blue-400" />
 							{monthNames[currentMonth]} Summary
 						</h4>
-						<div class="grid grid-cols-2 gap-3">
-							<div class="bg-gray-900 rounded-lg p-3 border border-gray-700">
-								<div class="text-2xl font-bold text-white">{monthTasks.length}</div>
-								<div class="text-xs text-gray-400 mt-1">Total Tasks</div>
+						<div class="grid grid-cols-2 gap-2">
+							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
+								<div class="text-lg font-bold text-white">{monthTasks.length}</div>
+								<div class="text-[10px] text-gray-400 mt-0.5">Total</div>
 							</div>
-							<div class="bg-gray-900 rounded-lg p-3 border border-gray-700">
-								<div class="text-2xl font-bold text-green-400">{monthTasks.filter(t => t.status === 'done').length}</div>
-								<div class="text-xs text-gray-400 mt-1">Completed</div>
+							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
+								<div class="text-lg font-bold text-green-400">{monthTasks.filter(t => t.status === 'done').length}</div>
+								<div class="text-[10px] text-gray-400 mt-0.5">Done</div>
 							</div>
-							<div class="bg-gray-900 rounded-lg p-3 border border-gray-700">
-								<div class="text-2xl font-bold text-blue-400">{monthTasks.filter(t => t.status === 'in-progress').length}</div>
-								<div class="text-xs text-gray-400 mt-1">In Progress</div>
+							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
+								<div class="text-lg font-bold text-blue-400">{monthTasks.filter(t => t.status === 'in-progress').length}</div>
+								<div class="text-[10px] text-gray-400 mt-0.5">Active</div>
 							</div>
-							<div class="bg-gray-900 rounded-lg p-3 border border-gray-700">
-								<div class="text-2xl font-bold text-gray-400">{monthTasks.filter(t => t.status === 'todo').length}</div>
-								<div class="text-xs text-gray-400 mt-1">To Do</div>
+							<div class="bg-gray-900 rounded-md p-2 border border-gray-700">
+								<div class="text-lg font-bold text-gray-400">{monthTasks.filter(t => t.status === 'todo').length}</div>
+								<div class="text-[10px] text-gray-400 mt-0.5">To Do</div>
 							</div>
 						</div>
 					</div>
 					{/if}
 
-					<h3 class="text-xl font-bold text-white mb-4">
+					<h3 class="text-base font-bold text-white mb-3">
 						{#if selectedDate}
 							Tasks for {monthNames[currentMonth]} {selectedDate}
 						{:else}
@@ -705,5 +676,4 @@
 				</div>
 			</div>
 		{/if}
-	</div>
 </div>

@@ -135,10 +135,9 @@
 	{#if !$page.url.pathname.startsWith('/login') && !$page.url.pathname.startsWith('/register')}
 		<nav class="bg-gray-900 shadow-sm border-b border-gray-800 sticky top-0 z-30 touch-pan-y">
 			<div class="app-shell">
-				<div class="flex items-center justify-between h-14">
-					<a href="/" class="flex items-center gap-2 py-1.5 -ml-2 px-2 rounded-lg hover:bg-gray-800 transition-colors touch-manipulation group">
-						<img src="/tonish-logo.svg" alt="Tonish" class="h-8 w-auto group-hover:scale-105 transition-transform" />
-						<span class="hidden xl:block text-lg font-bold text-white">Tonish</span>
+				<div class="flex items-center justify-between h-12">
+					<a href="/" class="flex items-center py-1 -ml-1 px-1.5 rounded-lg hover:bg-gray-800 transition-colors touch-manipulation">
+						<img src="/tonish-logo.svg" alt="Tonish" class="h-7 w-auto" />
 					</a>
 					<div class="hidden md:flex items-center space-x-4">
 						{#each navLinks as link}
@@ -153,14 +152,7 @@
 							</a>
 						{/each}
 					</div>
-					<div class="flex items-center gap-4">
-						<div class="flex flex-col items-end">
-							<span class="text-xs font-medium text-gray-300">
-								{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-							</span>
 
-						</div>
-					</div>
 				</div>
 			</div>
 		</nav>

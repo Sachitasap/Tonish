@@ -24,6 +24,14 @@
     --destructive-foreground: 210 20% 98%;
     --ring: 224 71.4% 4.1%;
     --radius: 0.5rem;
+
+    /* App tokens */
+    --nav-height: 3.5rem;
+    --bottom-nav-height: 3.5rem;
+    --sheet-bg: #ffffff;
+    --skeleton-base: #f0f0f0;
+    --skeleton-shine: #e8e8e8;
+
 	--sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -54,6 +62,12 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
     --ring: 216 12.2% 83.9%;
+
+    /* App tokens – dark */
+    --sheet-bg: #1f2937;
+    --skeleton-base: #374151;
+    --skeleton-shine: #4b5563;
+
 	--sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -66,30 +80,64 @@
 }
 
 @layer base {
-  * {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
     @apply border-border;
   }
+
+  html {
+    height: 100%;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
+    min-height: 100%;
     @apply bg-background text-foreground;
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(217.2 91.2% 59.8%);
+    outline-offset: 2px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
   }
 
   /* Global container utility */
   .app-shell {
-    @apply mx-auto max-w-7xl px-3 sm:px-4 lg:px-6;
+    @apply mx-auto w-full max-w-7xl;
+    padding-left:  max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
   }
+  @screen sm  { .app-shell { padding-left: max(1rem,   env(safe-area-inset-left)); padding-right: max(1rem,   env(safe-area-inset-right)); } }
+  @screen lg  { .app-shell { padding-left: max(1.5rem, env(safe-area-inset-left)); padding-right: max(1.5rem, env(safe-area-inset-right)); } }
 
   /* Responsive padding - Reduced for space saving */
   .app-padding {
     @apply px-3 py-4 sm:px-4 sm:py-5 lg:px-6 lg:py-6;
   }
 
-  /* Safe viewport height for mobile browsers */
+  /* Safe viewport height – uses dynamic viewport (dvh) on modern browsers */
   .min-h-screen-safe {
     min-height: 100vh;
-    min-height: -webkit-fill-available;
+    min-height: 100dvh;
   }
 
-  /* Prevent zoom on inputs (iOS) */ 
+  /* Prevent zoom on inputs – font-size must be >= 16px on iOS */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -100,7 +148,7 @@
   input[type="date"],
   textarea,
   select {
-    font-size: 16px;
+    font-size: max(16px, 1rem);
   }
 
   /* Better mobile tap targets */
@@ -111,7 +159,7 @@
 }
 
 @layer utilities {
-  /* Touch-optimized utilities - Reduced for space saving */
+  /* Touch targets – WCAG 2.5.5 minimum 44×44 px */
   .touch-target {
     min-width: 44px;
     min-height: 44px;
@@ -123,16 +171,18 @@
   .touch-target-large {
     min-width: 52px;
     min-height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Touch feedback */
   .touch-feedback {
-    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.1);
-    transition: transform 0.1s ease, background-color 0.2s ease;
+    transition: transform 0.1s ease, background-color 0.15s ease;
   }
 
   .touch-feedback:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
 
   /* Focus ring for accessibility */
@@ -147,34 +197,17 @@
     padding-right: max(1rem, env(safe-area-inset-right));
   }
 
-  /* Responsive text sizes */
-  .text-responsive-xs {
-    @apply text-xs sm:text-sm;
-  }
-
-  .text-responsive-sm {
-    @apply text-sm sm:text-base;
-  }
-
-  .text-responsive-base {
-    @apply text-base sm:text-lg;
-  }
-
-  .text-responsive-lg {
-    @apply text-lg sm:text-xl lg:text-2xl;
-  }
-
-  .text-responsive-xl {
-    @apply text-xl sm:text-2xl lg:text-3xl;
-  }
-
-  .text-responsive-2xl {
-    @apply text-2xl sm:text-3xl lg:text-4xl;
-  }
+  /* Fluid responsive typography using clamp() */
+  .text-responsive-xs   { font-size: clamp(0.7rem,  2vw,   0.75rem);  }
+  .text-responsive-sm   { font-size: clamp(0.8rem,  2.2vw, 0.875rem); }
+  .text-responsive-base { font-size: clamp(0.875rem,2.5vw, 1rem);    }
+  .text-responsive-lg   { font-size: clamp(1rem,    3vw,   1.25rem);  }
+  .text-responsive-xl   { font-size: clamp(1.125rem,3.5vw, 1.5rem);  }
+  .text-responsive-2xl  { font-size: clamp(1.25rem, 4.5vw, 2rem);    }
 
   /* Card hover effects */
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
   }
 
   /* Mobile-friendly scrolling */
@@ -200,33 +233,34 @@
     backdrop-filter: blur(4px);
   }
 
-  /* Mobile bottom sheet */
+  /* Bottom sheet – uses CSS var so dark mode is automatic */
   .bottom-sheet {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: white;
-    border-top-left-radius: 1.5rem;
-    border-top-right-radius: 1.5rem;
-    box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1);
+    background: var(--sheet-bg);
+    border-top-left-radius: 1.25rem;
+    border-top-right-radius: 1.25rem;
+    box-shadow: 0 -4px 20px rgb(0 0 0 / 0.2);
     transform: translateY(100%);
-    transition: transform 0.3s ease-out;
-    max-height: 90vh;
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 90dvh;
     overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .bottom-sheet.open {
     transform: translateY(0);
   }
 
-  /* Grid responsive utilities */
+  /* Responsive grids – min() prevents overflow on narrow screens */
   .grid-auto-fit {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit,  minmax(min(100%, 250px), 1fr));
   }
 
   .grid-auto-fill {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
   }
 
   /* Hide scrollbar but keep functionality */
@@ -301,6 +335,7 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 
@@ -320,33 +355,38 @@
     aspect-ratio: 16 / 9;
   }
 
-  /* Loading skeleton */
+  /* Loading skeleton – theme-aware via CSS vars (light & dark) */
   .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background: linear-gradient(
+      90deg,
+      var(--skeleton-base)  25%,
+      var(--skeleton-shine) 50%,
+      var(--skeleton-base)  75%
+    );
     background-size: 200% 100%;
-    animation: loading 1.5s ease-in-out infinite;
+    border-radius: var(--radius);
+    animation: skeleton-loading 1.4s ease-in-out infinite;
   }
 
-  @keyframes loading {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
+  @keyframes skeleton-loading {
+    0%   { background-position:  200% 0; }
+    100% { background-position: -200% 0; }
   }
 
-  /* Glass morphism effect */
+  /* Glass morphism – light and dark variants */
   .glass {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .dark .glass {
+    background: rgba(17, 24, 39, 0.65);
   }
 
   .glass-dark {
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   /* Truncate text */
@@ -381,5 +421,13 @@
   /* Reduced gap utilities */
   .gap-compact {
     @apply gap-2 sm:gap-3;
+  }
+
+  /* Very small phones (< 360 px) – tighten layout */
+  @media (max-width: 359px) {
+    .card-compact        { padding: 0.5rem; }
+    .touch-target        { min-width: 40px; min-height: 40px; }
+    .touch-target-large  { min-width: 44px; min-height: 44px; }
+    .btn-compact         { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
   }
 }

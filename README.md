@@ -1,46 +1,54 @@
-# Tonish - Modern Note-Taking Application
+# Tonish - Modern Task Management Application
 
-A modern, full-stack note-taking application built with Go (Backend) and SvelteKit (Frontend). Tonish offers a beautiful, intuitive interface for organizing your notes, notebooks, and tasks with real-time search and seamless user experience.
+A modern, full-stack task management and note-taking application built with Go (Backend) and SvelteKit (Frontend). Tonish offers a beautiful, space-optimized interface for organizing your tasks, notes, and workflows with real-time synchronization across all devices.
 
-## 🚀 Quick Access
+## ✨ Key Features
+
+- 📋 **Dual Task Systems**: Kanban board and Eisenhower Matrix for flexible task management
+- 📅 **Calendar View**: Visual task scheduling and tracking
+- 📓 **MyFlowBook**: Rich notebook and note-taking system
+- 🔄 **Real-time Sync**: WebSocket-based live updates across all connected devices
+- 📱 **Responsive Design**: Space-optimized for mobile, tablet, and desktop
+- 🎨 **Modern UI**: Clean interface with official Tonish branding
+- 🔐 **Secure**: JWT authentication and password hashing
+- 🚀 **Fast**: Lightweight Go backend with efficient SvelteKit frontend
+
+## 🚀 Quick Start
 
 Once the application is running:
 
-- **Frontend (Web App)**: http://192.168.4.213:50001
-- **Backend API**: http://192.168.4.213:50002
-- **API Health Check**: http://192.168.4.213:50002/
+- **Frontend (Web App)**: http://localhost:50001
+- **Backend API**: http://localhost:50002
+- **WebSocket Endpoint**: ws://localhost:50002/ws
+- **API Health Check**: http://localhost:50002/
 
-**Note**: The application is configured to run on IP address 192.168.4.213 with frontend on port 50001 and backend on port 50002. Access from any device on the same network using these URLs.
+## 🔐 Default Login
 
-## 🔐 Login Information
-
-User self-registration is **temporarily disabled**. Use the pre-provisioned default account to sign in:
+User self-registration is **disabled by default**. Use the pre-configured account:
 
 - **Email**: `klist@gmail.com`
 - **Password**: `Klist123`
 
-To change these credentials, update `DEFAULT_USER_EMAIL`, `DEFAULT_USER_PASSWORD`, and `DEFAULT_USER_NAME` in the `.env` file (or supply them through your infrastructure secrets) and restart the containers. The backend seeds the specified account automatically if it does not already exist.
-
-**Note**: All user data, including the default account, is stored locally in the SQLite database within the Docker volume.
+To change credentials, update `DEFAULT_USER_EMAIL`, `DEFAULT_USER_PASSWORD`, and `DEFAULT_USER_NAME` in the `.env` file and restart the containers.
 
 ## 📋 Prerequisites
 
-Before setting up Tonish, ensure you have the following installed:
+Before setting up Tonish, ensure you have:
 
 - **Docker** (version 20.10 or higher)
 - **Docker Compose** (version 2.0 or higher)
 
-To verify your installation:
+Verify your installation:
 ```bash
 docker --version
 docker-compose --version
 ```
 
-## 🛠️ Initial Setup
+## 🛠️ Installation & Setup
 
 ### Step 1: Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/Sachitasap/Tonish.git
 cd Tonish
 ```
 
@@ -52,7 +60,7 @@ Create a `.env` file in the root directory:
 cp .env.example .env
 ```
 
-Edit the `.env` file with your preferred configuration:
+Edit the `.env` file with your configuration:
 
 ```env
 # Backend Configuration
@@ -65,63 +73,81 @@ DEFAULT_USER_NAME=Klist
 
 # Frontend Configuration
 FRONTEND_PORT=50001
-BACKEND_URL=http://192.168.4.213:50002
-
-# Production Settings (optional)
-# CORS_ORIGINS=https://yourdomain.com
 ```
 
-**Important**: Change the `JWT_SECRET` to a secure random string for production use. Update the default user credentials (or remove them) before deploying to production.
+**Important**: Change the `JWT_SECRET` to a secure random string for production use.
 
-### Step 3: Build and Start the Application
+### Step 3: Build and Start
 
+Build containers from scratch:
 ```bash
-docker-compose up --build
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
-This command will:
-- Build the backend Go application
-- Build the frontend SvelteKit application
-- Start both services with networking configured
-- Create persistent database volume
+Or use the quick start:
+```bash
+docker-compose up -d --build
+```
 
 ### Step 4: Access the Application
 
 Open your browser and navigate to:
 ```
-http://192.168.4.213:50001
+http://localhost:50001
 ```
 
-You can also access it from other devices on the same network (192.168.4.0/22) using this URL.
+## 🎯 Application Features
 
-## 🎯 Usage Guide
+### 1. Dashboard
+- Quick overview of all tasks and notebooks
+- Task statistics by status and quadrant
+- Recent activity summary
 
-### Features
+### 2. MyFlow - Task Management
+Switch between two powerful task management systems:
 
-1. **Notebook Management**
-   - Create, edit, and delete notebooks
-   - Organize notes in collections
-   - Visual cards with gradient backgrounds
+**Kanban Board**
+- To Do, In Progress, Done columns
+- Drag-and-drop task organization
+- Quick task creation
+- Visual task cards with priority indicators
 
-2. **Note Taking**
-   - Rich text editing
-   - Markdown support
-   - Quick search functionality
+**Eisenhower Matrix**
+- Urgent & Important (Do First)
+- Not Urgent & Important (Schedule)
+- Urgent & Not Important (Delegate)
+- Not Urgent & Not Important (Eliminate)
+- Drag-and-drop between quadrants
+- Strategic task prioritization
 
-3. **Task Management**
-   - Create and track tasks
-   - Task organization within notebooks
+### 3. Calendar
+- Monthly calendar view
+- Task scheduling with due dates
+- Visual task indicators
+- Create and edit tasks directly from calendar
+- Quick stats for the month
 
-4. **MyFlow & Lookback**
-   - Daily workflow tracking
-   - Reflection and review features
+### 4. MyFlowBook - Note Taking
+- Create and organize notebooks
+- Rich text editing with Markdown support
+- Page management within notebooks
+- Search functionality
+- Pin important notebooks
+- Export capabilities
 
-### Navigation
+### 5. LookBack - Archive
+- Review completed and archived tasks
+- Restore or permanently delete tasks
+- Filter by status and date
+- Task history tracking
 
-- **Home**: Dashboard overview
-- **MyFlowBook**: Main notebook interface
-- **MyFlow**: Daily workflow tracker
-- **Lookback**: Review and reflection area
+### 6. Real-time Synchronization
+- Instant updates across all connected devices
+- WebSocket-based live sync
+- Automatic reconnection
+- No manual refresh needed
 
 ## 📁 Project Structure
 
@@ -130,9 +156,15 @@ Tonish/
 ├── backend/                 # Go backend application
 │   ├── database/           # Database connection and migrations
 │   ├── handlers/           # API request handlers
+│   │   ├── auth.go        # Authentication endpoints
+│   │   ├── task.go        # Task management
+│   │   └── notebook.go    # Notebook and page management
 │   ├── middleware/         # Authentication and CORS
 │   ├── models/             # Data models
-│   ├── routes/             # API routes
+│   ├── routes/             # API routes configuration
+│   ├── websocket/          # WebSocket hub and handlers
+│   │   ├── hub.go         # WebSocket connection manager
+│   │   └── handler.go     # WebSocket message handling
 │   ├── Dockerfile          # Backend container config
 │   ├── go.mod              # Go dependencies
 │   └── main.go             # Application entry point
@@ -141,13 +173,26 @@ Tonish/
 │   ├── src/
 │   │   ├── lib/           # Shared utilities and components
 │   │   │   ├── api.ts     # API client
-│   │   │   └── components/ # Reusable UI components
-│   │   └── routes/        # Application pages
-│   │       ├── login/     # Login page
-│   │       ├── register/  # Registration page
-│   │       ├── myflowbook/ # Notebook pages
-│   │       ├── myflow/    # Workflow tracker
-│   │       └── lookback/  # Review page
+│   │   │   ├── websocket.ts # WebSocket client
+│   │   │   ├── utils.ts   # Utility functions
+│   │   │   ├── assets/    # Images and logos
+│   │   │   └── components/
+│   │   │       └── TonishLogo.svelte
+│   │   ├── routes/        # Application pages
+│   │   │   ├── +layout.svelte  # Main layout with navigation
+│   │   │   ├── +page.svelte    # Dashboard
+│   │   │   ├── login/     # Login page
+│   │   │   ├── register/  # Registration (disabled)
+│   │   │   ├── myflow/    # Task management (Kanban/Matrix)
+│   │   │   ├── calendar/  # Calendar view
+│   │   │   ├── myflowbook/ # Notebook management
+│   │   │   │   └── [id]/  # Notebook detail pages
+│   │   │   └── lookback/  # Archive and history
+│   │   ├── app.css        # Global styles and utilities
+│   │   └── app.html       # HTML template
+│   ├── static/            # Static assets
+│   │   ├── tonish-logo.svg # Official logo
+│   │   └── manifest.json  # PWA manifest
 │   ├── Dockerfile         # Frontend container config
 │   └── package.json       # Node dependencies
 │
@@ -166,7 +211,7 @@ For local development without Docker:
 ```bash
 cd backend
 go mod download
-PORT=8080 JWT_SECRET=dev-secret go run main.go
+PORT=50002 JWT_SECRET=dev-secret go run main.go
 ```
 
 **Frontend:**
@@ -174,7 +219,11 @@ PORT=8080 JWT_SECRET=dev-secret go run main.go
 cd frontend
 npm install
 npm run dev
+# Frontend runs on port 5173 by default
+# Update API_URL in src/lib/api.ts if needed
 ```
+
+**Note:** When running locally, ensure WebSocket URL in frontend matches backend port (ws://localhost:50002/ws)
 
 ### Stopping the Application
 
@@ -199,14 +248,40 @@ docker-compose logs -f backend
 docker-compose logs -f frontend
 ```
 
+### WebSocket Development
+
+Monitor WebSocket connections in development:
+
+```bash
+# Backend logs show WebSocket activity
+docker-compose logs -f backend | grep -i websocket
+
+# Expected output:
+# WebSocket hub started
+# New WebSocket connection: user_id=1
+# Broadcasting to user 1: task_create
+```
+
+Browser console will show:
+- Connection status
+- Reconnection attempts
+- Incoming real-time messages
+
 ## 🗄️ Database
 
 The application uses **SQLite** for data persistence. The database file is stored in a Docker volume named `tonish-db` to ensure data persists across container restarts.
 
 ### Models
 - **Users**: Authentication and profile information
-- **Notebooks**: Note collections
-- **Tasks**: Task items with status tracking
+- **Tasks**: Task items with status, priority, quadrant, and archival support
+- **Notebooks**: Note collections with pages
+- **Pages**: Individual notebook pages with rich content
+
+### Real-Time Synchronization
+- Changes to tasks and notebooks are broadcast via WebSocket
+- All connected clients for the same user receive updates instantly
+- No polling required - updates are pushed in real-time
+- Automatic reconnection ensures consistent sync across devices
 
 ## 🛡️ Security
 
@@ -223,80 +298,114 @@ For production deployment, consider:
    - Use strong, unique `JWT_SECRET`
    - Configure appropriate `CORS_ORIGINS`
    - Set production ports if needed
+   - Configure WebSocket URL for production domain
 
-2. **HTTPS**:
-   - Use a reverse proxy (nginx, traefik)
-   - Configure SSL certificates
+2. **HTTPS & WSS**:
+   - Use a reverse proxy (nginx, caddy, traefik)
+   - Configure SSL certificates (Let's Encrypt recommended)
+   - Ensure WebSocket upgrade headers are properly proxied
+   - Update frontend to use `wss://` instead of `ws://` for secure WebSocket
 
-3. **Database Backup**:
+3. **Reverse Proxy Configuration** (nginx example):
+   ```nginx
+   location /ws {
+       proxy_pass http://backend:50002;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection "upgrade";
+       proxy_set_header Host $host;
+   }
+   ```
+
+4. **Database**:
    - Regular backups of the `tonish-db` volume
-   - Consider using a more robust database for production
+   - Consider PostgreSQL or MySQL for production scale
+   - Set up automated backup schedules
 
-4. **Monitoring**:
-   - Set up logging and monitoring
-   - Configure health checks
+5. **Monitoring & Logging**:
+   - Set up centralized logging
+   - Monitor WebSocket connection health
+   - Configure health check endpoints
+   - Track active WebSocket connections
+
+6. **Performance**:
+   - Enable HTTP/2 for better WebSocket performance
+   - Configure connection pooling
+   - Set appropriate timeouts for WebSocket connections
+   - Consider load balancing for high traffic
 
 ## 🛠️ Technologies Used
 
 ### Backend
-- **Go** (Golang) - Programming language
-- **Fiber** - Web framework
+- **Go 1.23** - Programming language
+- **Fiber v2** - High-performance web framework
 - **GORM** - ORM for database operations
-- **SQLite** - Database
-- **JWT** - Authentication
+- **SQLite** - Embedded database
+- **JWT** - Token-based authentication
 - **Bcrypt** - Password hashing
+- **WebSocket** - Real-time bidirectional communication
 
 ### Frontend
-- **SvelteKit** - Frontend framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **TailwindCSS** - Styling
-- **Lucide** - Icons
+- **SvelteKit** - Modern frontend framework
+- **TypeScript** - Type-safe JavaScript
+- **Vite** - Fast build tool
+- **TailwindCSS** - Utility-first CSS framework
+- **Lucide Svelte** - Beautiful icon library
+- **WebSocket API** - Real-time client
 
 ### DevOps
-- **Docker** - Containerization
+- **Docker** - Containerization platform
 - **Docker Compose** - Multi-container orchestration
+- **Alpine Linux** - Minimal container base images
 
 ## 📝 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Create new account
-- `POST /api/auth/login` - Login and get JWT token
-- `GET /api/auth/me` - Get current user (requires auth)
-
-### Notebooks
-- `GET /api/notebooks` - List all notebooks
-- `POST /api/notebooks` - Create notebook
-- `GET /api/notebooks/:id` - Get specific notebook
-- `PUT /api/notebooks/:id` - Update notebook
-- `DELETE /api/notebooks/:id` - Delete notebook
+- `POST /api/auth/register` - Create new account (disabled by default)
+- `POST /api/auth/login` - Login and receive JWT token
+- `GET /api/user/me` - Get current user profile
 
 ### Tasks
 - `GET /api/tasks` - List all tasks
-- `POST /api/tasks` - Create task
+- `GET /api/tasks/archived` - Get archived tasks
+- `GET /api/tasks/status?status=todo` - Filter tasks by status
+- `GET /api/tasks/quadrant/:quadrant` - Filter by matrix quadrant
+- `GET /api/tasks/:id` - Get specific task
+- `POST /api/tasks` - Create new task
 - `PUT /api/tasks/:id` - Update task
-- `DELETE /api/tasks/:id` - Delete task
+- `DELETE /api/tasks/:id` - Delete task (soft delete)
+- `POST /api/tasks/:id/archive` - Archive task
+- `POST /api/tasks/:id/restore` - Restore archived task
+- `DELETE /api/tasks/:id/permanent` - Permanently delete task
+
+### Notebooks
+- `GET /api/notebooks` - List all notebooks
+- `GET /api/notebooks/:id` - Get specific notebook with pages
+- `POST /api/notebooks` - Create new notebook
+- `PUT /api/notebooks/:id` - Update notebook
+- `DELETE /api/notebooks/:id` - Delete notebook and its pages
+
+### Pages
+- `GET /api/pages/search?q=keyword` - Search pages
+- `GET /api/pages/:id` - Get specific page
+- `POST /api/pages` - Create new page
+- `PUT /api/pages/:id` - Update page content
+- `DELETE /api/pages/:id` - Delete page
+
+### WebSocket
+- `WS /ws?user_id=<id>` - WebSocket connection for real-time updates
+
+### WebSocket Message Types
+- `task_create` - New task created
+- `task_update` - Task updated
+- `task_delete` - Task deleted
+- `notebook_create` - New notebook created
+- `notebook_update` - Notebook/page updated
+- `notebook_delete` - Notebook deleted
 
 ## 🐛 Troubleshooting
 
-### Testing Registration
-If you're having issues with registration, use the included test page:
-```bash
-# Open test-registration.html in your browser
-open test-registration.html  # macOS
-xdg-open test-registration.html  # Linux
-# Or navigate to file:///path/to/Tonish/test-registration.html
-```
-
-This standalone test page will help you:
-- Verify the backend API is accessible
-- Test registration without the frontend
-- See detailed error messages
-- Check for CORS issues
-
-### Registration Not Working
-If registration fails:
-
+### Services Not Running
 1. **Check both services are running:**
    ```bash
    docker-compose ps
@@ -305,27 +414,53 @@ If registration fails:
 
 2. **Verify backend API:**
    ```bash
-   curl http://localhost:8080/
+   curl http://localhost:50002/
    # Should return: {"message":"Tonish API is running","version":"1.0"}
    ```
 
-3. **Test registration directly:**
+3. **Check container logs:**
    ```bash
-   curl -X POST http://localhost:8080/api/auth/register \
-     -H "Content-Type: application/json" \
-     -d '{"email":"test@test.com","password":"test123456","name":"Test User"}'
+   docker-compose logs -f backend
+   docker-compose logs -f frontend
    ```
 
-4. **Rebuild containers if needed:**
+### Authentication Issues
+1. **Login with default credentials:**
+   - Email: `klist@gmail.com`
+   - Password: `Klist123`
+
+2. **Test authentication API:**
    ```bash
-   docker-compose down
-   docker-compose up -d --build
+   curl -X POST http://localhost:50002/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"klist@gmail.com","password":"Klist123"}'
+   ```
+
+3. **Registration is disabled by default** - Use the existing user account
+
+### WebSocket Not Connecting
+1. **Check WebSocket endpoint:**
+   - URL should be: `ws://localhost:50002/ws?user_id=<user_id>`
+   - Frontend auto-reconnects with exponential backoff
+   - Max 5 retry attempts with increasing delays
+
+2. **Verify in browser console:**
+   ```javascript
+   // Should see WebSocket connection messages
+   // Check for "WebSocket connected" or reconnection attempts
+   ```
+
+3. **Backend logs should show:**
+   ```
+   WebSocket hub started
+   New WebSocket connection: user_id=<id>
    ```
 
 ### Port Already in Use
-If ports 5173 or 8080 are already in use:
-1. Edit `.env` file and change `FRONTEND_PORT` or `BACKEND_PORT`
-2. Restart with `docker-compose up`
+If ports 50001 or 50002 are in use:
+1. Edit `docker-compose.yml` to change port mappings
+2. Update frontend API URL in `src/lib/api.ts`
+3. Restart: `docker-compose down && docker-compose up -d`
 
 ### Database Issues
 ```bash
@@ -334,20 +469,26 @@ docker-compose down -v
 docker-compose up --build
 ```
 
+### Real-Time Updates Not Working
+1. Check browser console for WebSocket errors
+2. Verify user_id is correctly passed to WebSocket endpoint
+3. Check backend logs for broadcast messages
+4. Ensure multiple devices use the same user account for sync
+
 ### Container Build Issues
 ```bash
 # Clean rebuild
 docker-compose down
 docker system prune -a
-docker-compose up --build
+docker-compose up --build --no-cache
 ```
 
-### "ContainerConfig" Error
-If you see a "ContainerConfig" KeyError:
+### Complete Reset
 ```bash
-# Complete reset
+# Nuclear option - removes everything
 docker-compose down -v
-docker-compose up -d --force-recreate
+docker system prune -af --volumes
+docker-compose up -d --build
 ```
 
 ## 📧 Support
@@ -360,4 +501,4 @@ For issues, questions, or contributions, please refer to the project repository.
 
 ---
 
-**Happy Note-Taking! 📝**
+**Stay Organized, Stay Productive! ✅**
