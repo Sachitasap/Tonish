@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { notebookAPI } from '$lib/api';
 	import { wsService } from '$lib/websocket';
-	import { Plus, Search, Pin, Menu, X, Trash2, Home } from 'lucide-svelte';
+	import { Plus, Search, Pin, Trash2, BookOpen, X, ChevronRight } from 'lucide-svelte';
 
 	type Notebook = {
 		id: number;
@@ -13,67 +13,91 @@
 		pages?: { id: number }[];
 	};
 
-	let notebooks = $state<Notebook[]>([]);
-	let loading = $state(true);
-	let showAddNotebook = $state(false);
-	let searchQuery = $state('');
-	let sidebarCollapsed = $state(false);
-	let showNotification = $state(false);
-	let notificationMessage = $state('');
-	let newNotebook = $state<{ name: string; tags: string }>({ name: '', tags: '' });
-	
-	const filteredNotebooks = $derived(
-		!searchQuery
-			? notebooks
-			: notebooks.filter((n) => {
-				const q = searchQuery.toLowerCase();
-				return n.name.toLowerCase().includes(q) || 
-					   (n.tags ?? '').toLowerCase().includes(q);
-			})
-	);
+	const NOTEBOOK_COLORS: { key: string; bg: string; ring: string; label: string }[] = [
+		{ key: 'blue',    bg: 'bg-blue-600',    ring: 'ring-blue-500',    label: 'Blue'    },
+		{ key: 'violet',  bg: 'bg-violet-600',  ring: 'ring-violet-500',  label: 'Violet'  },
+		{ key: 'emerald', bg: 'bg-emerald-600', ring: 'ring-emerald-500', label: 'Green'   },
+		{ key: 'rose',    bg: 'bg-rose-600',    ring: 'ring-rose-500',    label: 'Rose'    },
+		{ key: 'amber',   bg: 'bg-amber-500',   ring: 'ring-amber-400',   label: 'Amber'   },
+		{ key: 'cyan',    bg: 'bg-cyan-600',    ring: 'ring-cyan-500',    label: 'Cyan'    },
+		{ key: 'orange',  bg: 'bg-orange-600',  ring: 'ring-orange-500',  label: 'Orange'  },
+		{ key: 'pink',    bg: 'bg-pink-600',    ring: 'ring-pink-500',    label: 'Pink'    },
+	];
+	const COLOR_BG_FALLBACK = [
+		'bg-blue-600','bg-violet-600','bg-emerald-600','bg-rose-600',
+		'bg-amber-500','bg-cyan-600','bg-orange-600','bg-pink-600',
+	];
 
-	const pinnedNotebooks = $derived(filteredNotebooks.filter((n) => n.is_pinned));
-	const regularNotebooks = $derived(filteredNotebooks.filter((n) => !n.is_pinned));
-	
+	function getNotebookColor(nb: Notebook): string {
+		const colorTag = (nb.tags ?? '').split(',').map(t => t.trim()).find(t => t.startsWith('_clr:'));
+		if (colorTag) {
+			const key = colorTag.slice(5);
+			return NOTEBOOK_COLORS.find(c => c.key === key)?.bg ?? COLOR_BG_FALLBACK[nb.id % COLOR_BG_FALLBACK.length];
+		}
+		return COLOR_BG_FALLBACK[nb.id % COLOR_BG_FALLBACK.length];
+	}
+
+	function visibleTags(nb: Notebook): string[] {
+		return (nb.tags ?? '').split(',').map(t => t.trim()).filter(t => t && !t.startsWith('_clr:'));
+	}
+	let notebooks:    Notebook[] = $state([]);
+	let loading     = $state(true);
+	let showModal   = $state(false);
+	let searchQuery = $state('');
+	let toast       = $state('');
+	let newNotebook = $state({ name: '', tags: '' });
+	let selectedColor = $state('blue');
+
+	const filtered = $derived(
+		!searchQuery ? notebooks : notebooks.filter(n => {
+			const q = searchQuery.toLowerCase();
+			const tags = visibleTags(n).join(' ');
+			return n.name.toLowerCase().includes(q) || tags.toLowerCase().includes(q);
+		})
+	);
+	const pinned  = $derived(filtered.filter(n => n.is_pinned));
+	const regular = $derived(filtered.filter(n => !n.is_pinned));
+
+	// Group regular notebooks by their chosen color, preserving NOTEBOOK_COLORS order
+	const colorGroups = $derived((() => {
+		const groups = new Map<string, Notebook[]>();
+		for (const c of NOTEBOOK_COLORS) groups.set(c.key, []);
+		groups.set('_none', []); // fallback for notebooks without a color tag
+		for (const nb of regular) {
+			const tag = (nb.tags ?? '').split(',').map(t => t.trim()).find(t => t.startsWith('_clr:'));
+			const key = tag ? tag.slice(5) : '_none';
+			(groups.get(key) ?? groups.get('_none')!).push(nb);
+		}
+		// Return only non-empty groups in color order, then _none last
+		const ordered: { key: string; label: string; bg: string; nbs: Notebook[] }[] = [];
+		for (const c of NOTEBOOK_COLORS) {
+			const nbs = groups.get(c.key) ?? [];
+			if (nbs.length) ordered.push({ key: c.key, label: c.label, bg: c.bg, nbs });
+		}
+		const none = groups.get('_none') ?? [];
+		if (none.length) ordered.push({ key: '_none', label: 'Other', bg: 'bg-gray-600', nbs: none });
+		return ordered;
+	})());
+
 	onMount(() => {
 		loadNotebooks();
-
-		// Set up WebSocket listeners for real-time updates
-		const handleNotebookUpdate = () => {
-			loadNotebooks();
-		};
-
-		const handleNotebookCreate = () => {
-			loadNotebooks();
-		};
-
-		const handleNotebookDelete = () => {
-			loadNotebooks();
-		};
-
-		wsService.on('notebook_update', handleNotebookUpdate);
-		wsService.on('notebook_create', handleNotebookCreate);
-		wsService.on('notebook_delete', handleNotebookDelete);
-
+		const refresh = () => loadNotebooks();
+		wsService.on('notebook_update', refresh);
+		wsService.on('notebook_create', refresh);
+		wsService.on('notebook_delete', refresh);
 		return () => {
-			wsService.off('notebook_update', handleNotebookUpdate);
-			wsService.off('notebook_create', handleNotebookCreate);
-			wsService.off('notebook_delete', handleNotebookDelete);
+			wsService.off('notebook_update', refresh);
+			wsService.off('notebook_create', refresh);
+			wsService.off('notebook_delete', refresh);
 		};
 	});
-	
+
 	async function loadNotebooks() {
-		// Check if user is authenticated
 		const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-		if (!token) {
-			goto('/login');
-			return;
-		}
+		if (!token) { goto('/login'); return; }
 		try {
 			notebooks = await notebookAPI.getAll();
 		} catch (error: any) {
-			console.error('Failed to load notebooks:', error);
-			// If unauthorized, redirect to login
 			if (error.message?.includes('Authorization') || error.message?.includes('401')) {
 				localStorage.removeItem('authToken');
 				goto('/login');
@@ -82,329 +106,283 @@
 			loading = false;
 		}
 	}
-	
-	async function handleAddNotebook() {
+
+	async function handleCreate() {
+		if (!newNotebook.name.trim()) return;
 		try {
-			await notebookAPI.create(newNotebook);
+			const colorTag = `_clr:${selectedColor}`;
+			const baseTags = newNotebook.tags.trim();
+			const fullTags = baseTags ? `${colorTag},${baseTags}` : colorTag;
+			await notebookAPI.create({ ...newNotebook, tags: fullTags });
 			await loadNotebooks();
-			showAddNotebook = false;
+			showModal = false;
 			newNotebook = { name: '', tags: '' };
-		} catch (error) {
-			console.error('Failed to create notebook:', error);
-		}
+			selectedColor = 'blue';
+		} catch (e) { console.error(e); }
 	}
-	
-	async function handleDeleteNotebook(id: number) {
-		if (confirm('Delete this notebook?')) {
-			try {
-				await notebookAPI.delete(id);
-				await loadNotebooks();
-				showNotification = true;
-				notificationMessage = 'Deleted';
-				setTimeout(() => showNotification = false, 2000);
-			} catch (error) {
-				console.error('Failed to delete:', error);
-			}
-		}
-	}
-	
-	async function handleTogglePin(notebook: Notebook) {
+
+	async function handleDelete(id: number) {
+		if (!confirm('Delete this notebook and all its pages?')) return;
 		try {
-			await notebookAPI.update(notebook.id, {
-				...notebook,
-				is_pinned: !notebook.is_pinned
-			});
+			await notebookAPI.delete(id);
 			await loadNotebooks();
-		} catch (error) {
-			console.error('Failed to toggle pin:', error);
-		}
+			showToast('Notebook deleted');
+		} catch (e) { console.error(e); }
+	}
+
+	async function handleTogglePin(nb: Notebook) {
+		try {
+			await notebookAPI.update(nb.id, { ...nb, is_pinned: !nb.is_pinned });
+			await loadNotebooks();
+		} catch (e) { console.error(e); }
+	}
+
+	function showToast(msg: string) {
+		toast = msg;
+		setTimeout(() => toast = '', 2500);
 	}
 </script>
 
 <svelte:head>
-	<title>MyFlowBook - Tonish</title>
+	<title>MyFlowBook – Tonish</title>
 </svelte:head>
 
-<div class="flex flex-col lg:flex-row">
-	<!-- Sidebar -->
-	<div class={`${sidebarCollapsed ? 'lg:w-16' : 'lg:w-72'} w-full bg-gray-900 border-r border-gray-800 transition-all duration-200 lg:flex-shrink-0 overflow-hidden`}>
-		<div class="p-3 sm:p-4 h-full flex flex-col">
-			<!-- Header -->
-			<div class="flex justify-between items-center mb-3">
-				{#if !sidebarCollapsed}
-					<div class="flex items-center gap-2">
-						<h2 class="text-base font-semibold text-white">Notebooks</h2>
-					</div>
-				{/if}
-				<button
-					onclick={() => sidebarCollapsed = !sidebarCollapsed}
-					class="text-gray-400 hover:bg-gray-800 p-2 rounded transition"
-					title="Toggle"
-				>
-					{#if sidebarCollapsed}
-						<Menu size={16} />
-					{:else}
-						<X size={16} />
-					{/if}
-				</button>
-			</div>
-			
-			{#if !sidebarCollapsed}
-				<!-- New Button -->
-				<button
-					onclick={() => showAddNotebook = !showAddNotebook}
-					class="w-full flex items-center justify-center gap-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium mb-3"
-				>
-					<Plus size={14} /> New
-				</button>
-				
-				<!-- List -->
-				<div class="flex-1 overflow-y-auto space-y-2">
-					{#if pinnedNotebooks.length > 0}
-						<div class="mb-3">
-							<h3 class="text-[10px] font-semibold text-gray-400 mb-2 px-2 uppercase tracking-wide">Pinned</h3>
-							{#each pinnedNotebooks as nb}
-								<a
-									href="/myflowbook/{nb.id}"
-									class="block p-2 bg-yellow-900 border border-yellow-800 rounded-md hover:bg-yellow-800 transition text-sm"
-								>
-									<div class="font-medium text-white truncate text-sm">{nb.name}</div>
-									<div class="text-xs text-gray-400">{nb.pages?.length || 0} pages</div>
-								</a>
-							{/each}
-						</div>
-					{/if}
-					
-					{#if regularNotebooks.length > 0}
-						<div>
-							<h3 class="text-[10px] font-semibold text-gray-400 mb-2 px-2 uppercase tracking-wide">All</h3>
-							{#each regularNotebooks as nb}
-								<a
-									href="/myflowbook/{nb.id}"
-									class="block p-2 bg-gray-800 rounded-md hover:bg-gray-700 transition text-sm border border-gray-700"
-								>
-									<div class="font-medium text-white truncate text-sm">{nb.name}</div>
-									<div class="text-xs text-gray-400">{nb.pages?.length || 0} pages</div>
-								</a>
-							{/each}
-						</div>
-					{/if}
-				</div>
-				
-				<!-- Footer -->
-				<a href="/" class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded text-sm text-gray-300 border-t border-gray-800 mt-3 pt-3">
-					<Home size={14} /> Home
-				</a>
-			{:else}
-				<div class="flex flex-col items-center gap-3 mt-4">
-					<button onclick={() => showAddNotebook = !showAddNotebook} class="p-2 hover:bg-gray-800 rounded" title="New">
-						<Plus size={16} />
-					</button>
-					<a href="/" class="p-2 hover:bg-gray-800 rounded" title="Home">
-						<Home size={16} />
-					</a>
-				</div>
-			{/if}
-		</div>
+<!-- Toast -->
+{#if toast}
+	<div class="fixed top-16 right-4 z-50 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-3 py-2 rounded-lg shadow-lg animate-fade-in">
+		{toast}
 	</div>
-	
-	<!-- Main -->
-	<div class="flex-1 bg-gray-950 overflow-auto">
-		<div class="max-w-[1200px] mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 space-y-3">
-		<!-- Notification -->
-		{#if showNotification}
-			<div class="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md z-50 text-sm">
-				{notificationMessage}
-			</div>
-		{/if}
-		
-		<!-- Header: just search + new button -->
-		<div class="flex gap-2 items-center">
-			<div class="flex-1 bg-gray-900 rounded-lg border border-gray-800 p-2 flex items-center gap-2">
-				<Search size={14} class="text-gray-400 ml-1" />
+{/if}
+
+<div class="max-w-[1400px] mx-auto space-y-4">
+
+	<!-- ── Page Header ── -->
+	<div class="flex flex-col sm:flex-row sm:items-center gap-3">
+		<div class="flex-1 min-w-0">
+			<h1 class="text-lg font-bold text-white leading-tight">MyFlowBook</h1>
+			<p class="text-xs text-gray-500 mt-0.5">
+				{#if loading}&nbsp;{:else}{notebooks.length} notebook{notebooks.length !== 1 ? 's' : ''}{/if}
+			</p>
+		</div>
+
+		<div class="flex items-center gap-2 w-full sm:w-auto">
+			<div class="flex-1 sm:w-56 flex items-center gap-2 h-9 bg-gray-900 border border-gray-800 rounded-lg px-3 focus-within:border-gray-600 transition">
+				<Search size={13} class="text-gray-500 flex-shrink-0" />
 				<input
 					type="text"
 					bind:value={searchQuery}
-					placeholder="Search notebooks..."
-					class="flex-1 px-2 py-1.5 border-none bg-gray-900 text-white placeholder:text-gray-500 focus:outline-none text-sm"
+					placeholder="Search…"
+					class="flex-1 bg-transparent text-sm text-white placeholder:text-gray-600 outline-none"
 				/>
 				{#if searchQuery}
-					<button onclick={() => searchQuery = ''} class="mr-1 p-1 hover:bg-gray-800 rounded text-gray-400"><X size={14} /></button>
+					<button onclick={() => searchQuery = ''} class="text-gray-500 hover:text-gray-300 transition">
+						<X size={13} />
+					</button>
 				{/if}
 			</div>
 			<button
-				onclick={() => showAddNotebook = !showAddNotebook}
-				class="bg-blue-600 text-white px-3 py-2 min-h-[40px] rounded-lg hover:bg-blue-700 transition flex items-center gap-1.5 text-sm font-medium flex-shrink-0"
+				onclick={() => showModal = true}
+				class="h-9 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-1.5 flex-shrink-0 transition"
 			><Plus size={14} /> New</button>
 		</div>
-		
-		<!-- Create Form -->
-		{#if showAddNotebook}
-			<div class="bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4">
-				<h2 class="font-semibold text-white mb-3 text-sm">New Notebook</h2>
-				<form onsubmit={(e) => { e.preventDefault(); handleAddNotebook(); }} class="space-y-2">
+	</div>
+
+	<!-- ── Content ── -->
+	{#if loading}
+		<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+			{#each [1,2,3,4,5,6] as _}
+				<div class="h-28 bg-gray-900 border border-gray-800 rounded-xl animate-pulse"></div>
+			{/each}
+		</div>
+
+	{:else if notebooks.length === 0}
+		<div class="flex flex-col items-center justify-center py-24 text-center">
+			<div class="w-16 h-16 bg-gray-900 border border-gray-800 rounded-2xl flex items-center justify-center mb-4">
+				<BookOpen size={28} class="text-gray-600" />
+			</div>
+			<h2 class="text-base font-semibold text-gray-300 mb-1">No notebooks yet</h2>
+			<p class="text-xs text-gray-600 mb-5 max-w-xs">Create your first notebook to start organising your notes and ideas.</p>
+			<button
+				onclick={() => showModal = true}
+				class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition"
+			><Plus size={14} /> Create notebook</button>
+		</div>
+
+	{:else if filtered.length === 0}
+		<div class="py-16 text-center">
+			<Search size={28} class="text-gray-700 mx-auto mb-3" />
+			<p class="text-sm text-gray-500">No notebooks match "<span class="text-gray-300">{searchQuery}</span>"</p>
+			<button onclick={() => searchQuery = ''} class="mt-3 text-xs text-blue-400 hover:text-blue-300 transition">Clear search</button>
+		</div>
+
+	{:else}
+		<div class="space-y-5">
+
+			<!-- Pinned -->
+			{#if pinned.length > 0}
+				<section>
+					<div class="flex items-center gap-2 mb-2.5">
+						<Pin size={12} class="text-yellow-500 fill-current" />
+						<span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Pinned</span>
+					</div>
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+						{#each pinned as nb}
+							{@render notebookCard(nb, true)}
+						{/each}
+					</div>
+				</section>
+			{/if}
+
+			<!-- Color groups -->
+			{#each colorGroups as group}
+				<section>
+					<div class="flex items-center gap-2 mb-2.5">
+						<div class="w-2.5 h-2.5 rounded-full {group.bg} flex-shrink-0"></div>
+						<span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{group.label}</span>
+						<span class="text-[10px] text-gray-600">({group.nbs.length})</span>
+					</div>
+					<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+						{#each group.nbs as nb}
+							{@render notebookCard(nb, false)}
+						{/each}
+					</div>
+				</section>
+			{/each}
+
+		</div>
+	{/if}
+</div>
+
+<!-- ── Notebook Card Snippet ── -->
+{#snippet notebookCard(nb: Notebook, isPinned: boolean)}
+	<div class="group relative bg-gray-900 border {isPinned ? 'border-yellow-800/60' : 'border-gray-800'} rounded-xl p-4 hover:border-gray-700 transition-all duration-150 flex flex-col gap-3">
+
+		<!-- Top row -->
+		<div class="flex items-start gap-3">
+			<div class="flex-shrink-0 w-9 h-9 rounded-lg {getNotebookColor(nb)} flex items-center justify-center text-white font-bold text-sm shadow-sm select-none">
+				{nb.name.charAt(0).toUpperCase()}
+			</div>
+			<div class="flex-1 min-w-0 pt-0.5">
+				<a href="/myflowbook/{nb.id}" class="block">
+					<h3 class="text-sm font-semibold text-white truncate hover:text-blue-400 transition leading-snug">{nb.name}</h3>
+				</a>
+				<p class="text-[11px] text-gray-500 mt-0.5">{nb.pages?.length ?? 0} page{(nb.pages?.length ?? 0) !== 1 ? 's' : ''}</p>
+			</div>
+			<button
+				onclick={() => handleTogglePin(nb)}
+				class="flex-shrink-0 p-1.5 rounded-md transition
+					{isPinned
+						? 'text-yellow-400 hover:bg-yellow-950'
+						: 'text-gray-600 hover:text-yellow-400 hover:bg-gray-800 opacity-0 group-hover:opacity-100'}"
+				title="{isPinned ? 'Unpin' : 'Pin'}"
+			><Pin size={13} class="{isPinned ? 'fill-current' : ''}" /></button>
+		</div>
+
+		<!-- Tags (inline to avoid {@const} placement error) -->
+		{#if visibleTags(nb).length > 0}
+			<div class="flex flex-wrap gap-1">
+				{#each visibleTags(nb).slice(0, 4) as tag}
+					<span class="text-[10px] bg-gray-800 border border-gray-700 text-gray-400 px-1.5 py-0.5 rounded-full">{tag}</span>
+				{/each}
+			</div>
+		{/if}
+
+		<!-- Actions -->
+		<div class="flex items-center gap-1.5 mt-auto pt-1 border-t border-gray-800">
+			<a
+				href="/myflowbook/{nb.id}"
+				class="flex-1 flex items-center justify-center gap-1.5 h-8 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg text-xs font-medium transition"
+			>Open <ChevronRight size={12} /></a>
+			<button
+				onclick={() => handleDelete(nb.id)}
+				class="h-8 w-8 flex items-center justify-center bg-gray-800 hover:bg-red-950 text-gray-500 hover:text-red-400 rounded-lg transition opacity-0 group-hover:opacity-100"
+				title="Delete"
+			><Trash2 size={13} /></button>
+		</div>
+	</div>
+{/snippet}
+
+<!-- ── Create Modal ── -->
+{#if showModal}
+	<div
+		class="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center sm:p-4"
+		onclick={(e) => { if (e.target === e.currentTarget) { showModal = false; newNotebook = { name: '', tags: '' }; selectedColor = 'blue'; }}}
+	>
+		<div class="bg-gray-900 border border-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm p-5 space-y-4">
+			<div class="flex items-center justify-between">
+				<h2 class="text-sm font-bold text-white">New Notebook</h2>
+				<button
+					onclick={() => { showModal = false; newNotebook = { name: '', tags: '' }; selectedColor = 'blue'; }}
+					class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+				><X size={16} /></button>
+			</div>
+			<form onsubmit={(e) => { e.preventDefault(); handleCreate(); }} class="space-y-3">
+				<!-- Color preview strip -->
+				<div class="flex items-center gap-3 p-3 bg-gray-800 rounded-lg border border-gray-700">
+					<div class="w-10 h-10 rounded-lg {NOTEBOOK_COLORS.find(c=>c.key===selectedColor)?.bg ?? 'bg-blue-600'} flex items-center justify-center text-white font-bold text-base select-none flex-shrink-0">
+						{newNotebook.name.charAt(0).toUpperCase() || '?'}
+					</div>
+					<div class="flex-1 min-w-0">
+						<p class="text-xs text-gray-400">Preview · <span class="text-gray-300">{NOTEBOOK_COLORS.find(c=>c.key===selectedColor)?.label ?? 'Blue'}</span></p>
+						<p class="text-[10px] text-gray-600 mt-0.5">This color will appear on your notebook card</p>
+					</div>
+				</div>
+
+				<!-- Color swatches -->
+				<div>
+					<label class="block text-xs font-medium text-gray-400 mb-2">Color</label>
+					<div class="grid grid-cols-8 gap-1.5">
+						{#each NOTEBOOK_COLORS as c}
+							<button
+								type="button"
+								onclick={() => selectedColor = c.key}
+								title={c.label}
+								class="w-full aspect-square rounded-lg {c.bg} transition-all
+									{selectedColor === c.key ? `ring-2 ring-offset-2 ring-offset-gray-900 ${c.ring} scale-110` : 'opacity-70 hover:opacity-100 hover:scale-105'}"
+							></button>
+						{/each}
+					</div>
+				</div>
+
+				<div>
+					<label class="block text-xs font-medium text-gray-400 mb-1.5">Name <span class="text-red-500">*</span></label>
 					<input
 						type="text"
 						bind:value={newNotebook.name}
 						required
-						placeholder="Name"
-						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+						placeholder="e.g. Project Ideas"
+						class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
 					/>
+				</div>
+				<div>
+					<label class="block text-xs font-medium text-gray-400 mb-1.5">Tags <span class="text-gray-600 font-normal">(comma separated)</span></label>
 					<input
 						type="text"
 						bind:value={newNotebook.tags}
-						placeholder="Tags"
-						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+						placeholder="e.g. work, personal"
+						class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
 					/>
-					<div class="flex gap-2 pt-1">
-						<button
-							type="submit"
-							class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium"
-						>
-							Create
-						</button>
-						<button
-							type="button"
-							onclick={() => { showAddNotebook = false; newNotebook = { name: '', tags: '' }; }}
-							class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition text-sm"
-						>
-							Cancel
-						</button>
-					</div>
-				</form>
-			</div>
-		{/if}		
-		<!-- Content -->
-		{#if loading}
-			<div class="py-8 text-center text-gray-400 text-sm">Loading...</div>
-		{:else if notebooks.length === 0}
-			<div class="bg-gray-800 rounded-lg p-8 text-center">
-				<p class="text-gray-400 text-sm mb-3">No notebooks</p>
-				<button
-					onclick={() => showAddNotebook = true}
-					class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium inline-flex items-center gap-2"
-				>
-					<Plus size={14} /> Create
-				</button>
-			</div>
-		{:else if filteredNotebooks.length === 0}
-			<div class="bg-gray-900 rounded-lg border border-gray-800 p-8 text-center text-gray-400 text-sm">
-				No match
-			</div>
-		{:else}
-			<div class="space-y-3">
-				{#if pinnedNotebooks.length > 0}
-					<div>
-						<h3 class="text-sm font-semibold text-gray-300 mb-2">Pinned ({pinnedNotebooks.length})</h3>
-						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-							{#each pinnedNotebooks as nb}
-								<div class="bg-yellow-900 border border-yellow-700 rounded-lg p-3">
-									<div class="flex justify-between items-start gap-2 mb-2">
-										<a href="/myflowbook/{nb.id}" class="flex-1 min-w-0">
-											<h3 class="font-semibold text-white truncate hover:text-blue-400 text-sm">{nb.name}</h3>
-										</a>
-										<button
-											onclick={() => handleTogglePin(nb)}
-											class="text-yellow-400 hover:text-yellow-300 p-1 flex-shrink-0"
-										>
-											<Pin size={14} class="fill-current" />
-										</button>
-									</div>
-									<p class="text-xs text-gray-400 mb-2">{nb.pages?.length || 0} pages</p>
-									<div class="flex gap-2">
-										<a href="/myflowbook/{nb.id}" class="flex-1 bg-blue-600 text-white text-center px-3 py-1.5 rounded-md text-xs font-medium hover:bg-blue-700 transition">
-											Open
-										</a>
-										<button
-											onclick={() => handleDeleteNotebook(nb.id)}
-											class="bg-red-950 text-red-300 hover:bg-red-900 px-2 py-1.5 rounded-md text-xs"
-										>
-											<Trash2 size={12} />
-										</button>
-									</div>
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-				
-				{#if regularNotebooks.length > 0}
-					<div>
-						<h3 class="text-sm font-semibold text-gray-300 mb-2">All ({regularNotebooks.length})</h3>
-						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-							{#each regularNotebooks as nb}
-								<div class="bg-gray-900 border border-gray-800 rounded-lg p-3 hover:border-gray-700 transition-all">
-									<div class="flex justify-between items-start gap-2 mb-2">
-										<a href="/myflowbook/{nb.id}" class="flex-1 min-w-0">
-											<h3 class="font-semibold text-white truncate hover:text-blue-400 text-sm">{nb.name}</h3>
-										</a>
-										<button
-											onclick={() => handleTogglePin(nb)}
-											class="text-gray-400 hover:text-yellow-400 p-1 flex-shrink-0"
-										>
-											<Pin size={14} />
-										</button>
-									</div>
-									<p class="text-xs text-gray-400 mb-2">{nb.pages?.length || 0} pages</p>
-									<div class="flex gap-2">
-										<a href="/myflowbook/{nb.id}" class="flex-1 bg-blue-600 text-white text-center px-3 py-1.5 rounded-md text-xs font-medium hover:bg-blue-700 transition">
-											Open
-										</a>
-										<button
-											onclick={() => handleDeleteNotebook(nb.id)}
-											class="bg-red-950 text-red-300 hover:bg-red-900 px-2 py-1.5 rounded-md text-xs"
-										>
-											<Trash2 size={12} />
-										</button>
-									</div>
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			</div>
-		{/if}
+				</div>
+				<div class="flex gap-2 pt-1">
+					<button type="submit" class="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition">Create</button>
+					<button type="button" onclick={() => { showModal = false; newNotebook = { name: '', tags: '' }; selectedColor = 'blue'; }} class="flex-1 h-10 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition">Cancel</button>
+				</div>
+			</form>
 		</div>
 	</div>
+{/if}
 
-	<button
-		type="button"
-		onclick={() => showAddNotebook = !showAddNotebook}
-		class="lg:hidden fixed bottom-24 right-5 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-purple-700 text-white text-2xl h-14 w-14 shadow-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 hover:shadow-lg transition"
-		aria-label="Add notebook"
-	>
-		+
-	</button>
-</div>
+<!-- Mobile FAB -->
+<button
+	onclick={() => showModal = true}
+	class="md:hidden fixed bottom-24 right-4 z-40 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-xl flex items-center justify-center transition"
+	aria-label="New notebook"
+><Plus size={22} /></button>
 
 <style>
-	@keyframes slide-in {
-		from {
-			opacity: 0;
-			transform: translateY(-10px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+	@keyframes fade-in {
+		from { opacity: 0; transform: translateY(-6px); }
+		to   { opacity: 1; transform: translateY(0); }
 	}
-
-	@keyframes scale-in {
-		from {
-			opacity: 0;
-			transform: scale(0.95);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
-	.animate-slide-in {
-		animation: slide-in 0.3s ease-out;
-	}
-
-	.animate-scale-in {
-		animation: scale-in 0.2s ease-out;
-	}
+	.animate-fade-in { animation: fade-in 0.2s ease-out; }
 </style>

@@ -674,277 +674,180 @@
 		</div>
 	{:else if activeView === 'kanban'}
 		<!-- Kanban Board -->
-		<div class="overflow-x-auto -mx-4 sm:mx-0 pb-4 touch-pan-x">
-			<div class="flex gap-4 px-4 sm:px-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-6">
+		<div class="overflow-x-auto -mx-4 sm:mx-0 pb-2 touch-pan-x">
+			<div class="flex gap-2 px-4 sm:px-0 snap-x snap-mandatory md:grid md:grid-cols-3 md:gap-2">
 			<!-- To Do Column -->
-			<section class="bg-gray-800 rounded-2xl p-4 min-w-[280px] snap-start md:min-w-0">
-				<h2 class="text-base font-semibold mb-3 text-gray-300 inline-flex items-center gap-2"><Circle size={16} /> To Do ({todoTasks.length})</h2>
-				<div class="space-y-3">
+			<section class="bg-gray-800 rounded-lg p-2.5 min-w-[250px] snap-start md:min-w-0">
+				<h2 class="text-xs font-semibold mb-2 text-gray-300 inline-flex items-center gap-1.5"><Circle size={13} /> To Do <span class="text-gray-500 ml-0.5">({todoTasks.length})</span></h2>
+				<div class="space-y-1.5">
 					{#each todoTasks as task}
 						{@const badgeClass = getPriorityBadgeClass(task.priority)}
 						{#if editingTaskId === task.id && editingTask}
-							<div class="bg-gray-900 rounded-lg shadow p-4 border-l-4 border-blue-500">
+							<div class="bg-gray-900 rounded p-2 border-l-2 border-blue-500">
 								<input
 									type="text"
 									bind:value={editingTask.title}
-									class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 									placeholder="Task title"
 								/>
 								<textarea
 									bind:value={editingTask.description}
-									class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 									placeholder="Description"
 									rows="2"
 								></textarea>
-								<div class="flex gap-2">
-									<button
-										onclick={handleSaveEditedTask}
-										class="flex-1 bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm font-medium"
-									>
-										Save
-									</button>
-									<button
-										onclick={cancelEditTask}
-										class="flex-1 bg-gray-700 text-gray-300 px-3 py-2 rounded hover:bg-gray-600 text-sm font-medium"
-									>
-										Cancel
-									</button>
+								<div class="flex gap-1.5">
+									<button onclick={handleSaveEditedTask} class="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 font-medium">Save</button>
+									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
 								</div>
 							</div>
 						{:else}
-							<div class="bg-gray-900 rounded-lg shadow p-4 hover:shadow-md transition">
-								<div class="flex justify-between items-start mb-2">
-									<div class="flex-1">
-										<h3 class="font-medium text-white mb-1">
-											{#if task.is_quick_task}
-												<Zap size={14} class="text-green-600 mr-1 inline" />
-											{/if}
-											{task.title}
-										</h3>
-									</div>
-									<span class="text-xs {badgeClass.bg} {badgeClass.text} px-2 py-1 rounded font-semibold inline-flex items-center gap-1">
-										<Circle size={12} class={badgeClass.color} /> {getPriorityLabel(task.priority)}
-									</span>
+							<div class="bg-gray-900 rounded p-2.5 hover:shadow transition">
+								<div class="flex items-start justify-between gap-1.5 mb-1">
+									<h3 class="text-xs font-medium text-white leading-tight flex-1">
+										{#if task.is_quick_task}<Zap size={11} class="text-green-500 mr-0.5 inline" />{/if}{task.title}
+									</h3>
+									<span class="text-[10px] {badgeClass.bg} {badgeClass.text} px-1.5 py-0.5 rounded font-semibold shrink-0">{getPriorityLabel(task.priority)}</span>
 								</div>
 								{#if task.description}
-									<p class="text-sm text-gray-400 mb-2">{task.description}</p>
+									<p class="text-[11px] text-gray-400 mb-1 leading-tight">{task.description}</p>
 								{/if}
 								{#if task.tags}
-									<div class="flex flex-wrap gap-1 mb-2">
+									<div class="flex flex-wrap gap-0.5 mb-1">
 										{#each task.tags.split(',') as tag}
-											<span class="text-xs bg-blue-950 text-blue-300 px-2 py-0.5 rounded">#{tag.trim()}</span>
+											<span class="text-[10px] bg-blue-950 text-blue-300 px-1.5 py-0.5 rounded">#{tag.trim()}</span>
 										{/each}
 									</div>
 								{/if}
-								<div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-700 flex-wrap gap-2">
-									<button
-										onclick={() => handleMoveToStatus(task, 'in-progress')}
-										class="text-xs text-blue-600 hover:underline font-medium inline-flex items-center gap-1">
-										<ArrowRight size={14} /> Start
-									</button>
+								<div class="flex items-center justify-between pt-1.5 border-t border-gray-700 mt-1.5">
+									<button onclick={() => handleMoveToStatus(task, 'in-progress')} class="text-[11px] text-blue-400 hover:text-blue-300 inline-flex items-center gap-0.5"><ArrowRight size={12} /> Start</button>
 									<div class="flex gap-2">
-										<button
-											onclick={() => startEditTask(task)}
-											class="text-xs text-purple-600 hover:underline font-medium inline-flex items-center gap-1"
-										>
-											<Edit2 size={14} /> Edit
-										</button>
-										<button
-											onclick={() => handleDeleteTask(task.id)}
-											class="text-xs text-red-600 hover:underline"
-										>
-											Delete
-										</button>
+										<button onclick={() => startEditTask(task)} class="text-[11px] text-purple-400 hover:text-purple-300 inline-flex items-center gap-0.5"><Edit2 size={11} /> Edit</button>
+										<button onclick={() => handleDeleteTask(task.id)} class="text-[11px] text-red-400 hover:text-red-300">Del</button>
 									</div>
 								</div>
 							</div>
 						{/if}
 					{/each}
 					{#if todoTasks.length === 0}
-						<p class="text-sm text-gray-400 text-center py-8">No tasks to do</p>
+						<p class="text-xs text-gray-500 text-center py-4">No tasks</p>
 					{/if}
 				</div>
 			</section>
 			
 			<!-- In Progress Column -->
-			<section class="bg-blue-950 rounded-2xl p-4 border-2 border-blue-900 min-w-[280px] snap-start md:min-w-0">
-				<h2 class="text-base font-semibold mb-3 text-blue-200 inline-flex items-center gap-2"><Zap size={16} /> In Progress ({inProgressTasks.length})</h2>
-				<div class="space-y-3">
+			<section class="bg-blue-950 rounded-lg p-2.5 border border-blue-900 min-w-[250px] snap-start md:min-w-0">
+				<h2 class="text-xs font-semibold mb-2 text-blue-300 inline-flex items-center gap-1.5"><Zap size={13} /> In Progress <span class="text-blue-600 ml-0.5">({inProgressTasks.length})</span></h2>
+				<div class="space-y-1.5">
 					{#each inProgressTasks as task}
 						{@const badgeClass = getPriorityBadgeClass(task.priority)}
 						{#if editingTaskId === task.id && editingTask}
-							<div class="bg-gray-900 rounded-lg shadow p-4 border-l-4 border-blue-500">
+							<div class="bg-gray-900 rounded p-2 border-l-2 border-blue-500">
 								<input
 									type="text"
 									bind:value={editingTask.title}
-									class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 									placeholder="Task title"
 								/>
 								<textarea
 									bind:value={editingTask.description}
-									class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 									placeholder="Description"
 									rows="2"
 								></textarea>
-								<div class="flex gap-2">
-									<button
-										onclick={handleSaveEditedTask}
-										class="flex-1 bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm font-medium"
-									>
-										Save
-									</button>
-									<button
-										onclick={cancelEditTask}
-										class="flex-1 bg-gray-700 text-gray-300 px-3 py-2 rounded hover:bg-gray-600 text-sm font-medium"
-									>
-										Cancel
-									</button>
+								<div class="flex gap-1.5">
+									<button onclick={handleSaveEditedTask} class="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 font-medium">Save</button>
+									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
 								</div>
 							</div>
 						{:else}
-							<div class="bg-gray-900 rounded-lg shadow p-4 hover:shadow-md transition border-l-4 border-blue-500">
-								<div class="flex justify-between items-start mb-2">
-									<div class="flex-1">
-										<h3 class="font-medium text-white mb-1">
-											{#if task.is_quick_task}
-												<Zap size={14} class="text-green-600 mr-1 inline" />
-											{/if}
-											{task.title}
-										</h3>
-									</div>
-									<span class="text-xs {badgeClass.bg} {badgeClass.text} px-2 py-1 rounded font-semibold inline-flex items-center gap-1">
-										<Circle size={12} class={badgeClass.color} /> {getPriorityLabel(task.priority)}
-									</span>
+							<div class="bg-gray-900 rounded p-2.5 hover:shadow transition border-l-2 border-blue-500">
+								<div class="flex items-start justify-between gap-1.5 mb-1">
+									<h3 class="text-xs font-medium text-white leading-tight flex-1">
+										{#if task.is_quick_task}<Zap size={11} class="text-green-500 mr-0.5 inline" />{/if}{task.title}
+									</h3>
+									<span class="text-[10px] {badgeClass.bg} {badgeClass.text} px-1.5 py-0.5 rounded font-semibold shrink-0">{getPriorityLabel(task.priority)}</span>
 								</div>
 								{#if task.description}
-									<p class="text-sm text-gray-400 mb-2">{task.description}</p>
+									<p class="text-[11px] text-gray-400 mb-1 leading-tight">{task.description}</p>
 								{/if}
 								{#if task.tags}
-									<div class="flex flex-wrap gap-1 mb-2">
+									<div class="flex flex-wrap gap-0.5 mb-1">
 										{#each task.tags.split(',') as tag}
-											<span class="text-xs bg-blue-950 text-blue-300 px-2 py-0.5 rounded">#{tag.trim()}</span>
+											<span class="text-[10px] bg-blue-950 text-blue-300 px-1.5 py-0.5 rounded">#{tag.trim()}</span>
 										{/each}
 									</div>
 								{/if}
-								<div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-700 flex-wrap gap-2">
-									<button
-										onclick={() => handleMoveToStatus(task, 'done')}
-										class="text-xs text-green-600 hover:underline font-medium inline-flex items-center gap-1"
-									>
-										<CheckCircle size={14} /> Complete
-									</button>
+								<div class="flex items-center justify-between pt-1.5 border-t border-gray-700 mt-1.5">
+									<button onclick={() => handleMoveToStatus(task, 'done')} class="text-[11px] text-green-400 hover:text-green-300 inline-flex items-center gap-0.5"><CheckCircle size={12} /> Done</button>
 									<div class="flex gap-2">
-										<button
-											onclick={() => handleMoveToStatus(task, 'todo')}
-											class="text-xs text-gray-400 hover:underline inline-flex items-center gap-1"
-										>
-											<ArrowLeft size={14} /> Back
-										</button>
-										<button
-											onclick={() => startEditTask(task)}
-											class="text-xs text-purple-600 hover:underline font-medium inline-flex items-center gap-1"
-										>
-											<Edit2 size={14} /> Edit
-										</button>
-										<button
-											onclick={() => handleDeleteTask(task.id)}
-											class="text-xs text-red-600 hover:underline"
-										>
-											Delete
-										</button>
+										<button onclick={() => handleMoveToStatus(task, 'todo')} class="text-[11px] text-gray-400 hover:text-gray-300 inline-flex items-center gap-0.5"><ArrowLeft size={11} /> Back</button>
+										<button onclick={() => startEditTask(task)} class="text-[11px] text-purple-400 hover:text-purple-300"><Edit2 size={11} /></button>
+										<button onclick={() => handleDeleteTask(task.id)} class="text-[11px] text-red-400 hover:text-red-300">Del</button>
 									</div>
 								</div>
 							</div>
 						{/if}
 					{/each}
 					{#if inProgressTasks.length === 0}
-						<p class="text-sm text-gray-400 text-center py-8">No tasks in progress</p>
+						<p class="text-xs text-gray-500 text-center py-4">No tasks</p>
 					{/if}
 				</div>
 			</section>
 			
 			<!-- Done Column -->
-			<section class="bg-green-950 rounded-2xl p-4 border-2 border-green-900 min-w-[280px] snap-start md:min-w-0">
-				<h2 class="text-base font-semibold mb-3 text-green-200 inline-flex items-center gap-2"><CheckCircle size={16} /> Done ({doneTasks.length})</h2>
-				<div class="space-y-3">
+			<section class="bg-green-950 rounded-lg p-2.5 border border-green-900 min-w-[250px] snap-start md:min-w-0">
+				<h2 class="text-xs font-semibold mb-2 text-green-300 inline-flex items-center gap-1.5"><CheckCircle size={13} /> Done <span class="text-green-600 ml-0.5">({doneTasks.length})</span></h2>
+				<div class="space-y-1.5">
 					{#each doneTasks as task}
 						{#if editingTaskId === task.id && editingTask}
-							<div class="bg-gray-900 rounded-lg shadow p-4 border-l-4 border-green-500">
+							<div class="bg-gray-900 rounded p-2 border-l-2 border-green-500">
 								<input
 									type="text"
 									bind:value={editingTask.title}
-									class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
 									placeholder="Task title"
 								/>
 								<textarea
 									bind:value={editingTask.description}
-									class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500"
 									placeholder="Description"
 									rows="2"
 								></textarea>
-								<div class="flex gap-2">
-									<button
-										onclick={handleSaveEditedTask}
-										class="flex-1 bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm font-medium"
-									>
-										Save
-									</button>
-									<button
-										onclick={cancelEditTask}
-										class="flex-1 bg-gray-700 text-gray-300 px-3 py-2 rounded hover:bg-gray-600 text-sm font-medium"
-									>
-										Cancel
-									</button>
+								<div class="flex gap-1.5">
+									<button onclick={handleSaveEditedTask} class="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 font-medium">Save</button>
+									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
 								</div>
 							</div>
 						{:else}
-							<div class="bg-gray-900 rounded-lg shadow p-4 opacity-75 hover:opacity-100 transition">
-								<div class="flex justify-between items-start mb-2">
-									<div class="flex-1">
-										<h3 class="font-medium text-white line-through mb-1">
-											{#if task.is_quick_task}
-												<Zap size={14} class="text-green-600 mr-1 inline" />
-											{/if}
-											{task.title}
-										</h3></div>
+							<div class="bg-gray-900 rounded p-2.5 opacity-75 hover:opacity-100 transition">
+								<div class="flex items-start justify-between gap-1.5 mb-1">
+									<h3 class="text-xs font-medium text-white line-through leading-tight flex-1">
+										{#if task.is_quick_task}<Zap size={11} class="text-green-500 mr-0.5 inline" />{/if}{task.title}
+									</h3>
 								</div>
 								{#if task.description}
-									<p class="text-sm text-gray-400 mb-2 line-through">{task.description}</p>
+									<p class="text-[11px] text-gray-400 mb-1 line-through leading-tight">{task.description}</p>
 								{/if}
 								{#if task.tags}
-									<div class="flex flex-wrap gap-1 mb-2 opacity-60">
+									<div class="flex flex-wrap gap-0.5 mb-1 opacity-60">
 										{#each task.tags.split(',') as tag}
-											<span class="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded">#{tag.trim()}</span>
+											<span class="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded">#{tag.trim()}</span>
 										{/each}
 									</div>
 								{/if}
-								<div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-700 flex-wrap gap-2">
-									<button
-										onclick={() => handleMoveToStatus(task, 'todo')}
-										class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
-									>
-										<ArrowLeft size={14} /> Reopen
-									</button>
+								<div class="flex items-center justify-between pt-1.5 border-t border-gray-700 mt-1.5">
+									<button onclick={() => handleMoveToStatus(task, 'todo')} class="text-[11px] text-blue-400 hover:text-blue-300 inline-flex items-center gap-0.5"><ArrowLeft size={11} /> Reopen</button>
 									<div class="flex gap-2">
-										<button
-											onclick={() => startEditTask(task)}
-											class="text-xs text-purple-600 hover:underline font-medium inline-flex items-center gap-1"
-										>
-											<Edit2 size={14} /> Edit
-										</button>
-										<button
-											onclick={() => handleDeleteTask(task.id)}
-											class="text-xs text-red-600 hover:underline"
-										>
-											Delete
-										</button>
+										<button onclick={() => startEditTask(task)} class="text-[11px] text-purple-400 hover:text-purple-300"><Edit2 size={11} /></button>
+										<button onclick={() => handleDeleteTask(task.id)} class="text-[11px] text-red-400 hover:text-red-300">Del</button>
 									</div>
 								</div>
 							</div>
 						{/if}
 					{/each}
 					{#if doneTasks.length === 0}
-						<p class="text-sm text-gray-400 text-center py-8">No completed tasks</p>
+						<p class="text-xs text-gray-500 text-center py-4">No tasks</p>
 					{/if}
 				</div>
 			</section>
@@ -952,89 +855,55 @@
 		</div>
 	{:else if activeView === 'matrix'}
 		<!-- Eisenhower Matrix -->
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
 			<!-- Urgent & Important (Do First) -->
-			<div 
+			<div
 				data-quadrant="urgent-important"
-				class="bg-red-950 border-2 border-red-900 rounded-lg p-5 min-h-[400px] transition-all touch-pan-y {draggedFromQuadrant !== 'urgent-important' && draggedTask ? 'ring-4 ring-green-400' : ''} {touchTargetQuadrant === 'urgent-important' ? 'ring-4 ring-green-400 bg-red-900' : ''}"
+				class="bg-red-950 border border-red-900 rounded-lg p-2.5 transition-all touch-pan-y {draggedFromQuadrant !== 'urgent-important' && draggedTask ? 'ring-2 ring-green-400' : ''} {touchTargetQuadrant === 'urgent-important' ? 'ring-2 ring-green-400 bg-red-900' : ''}"
 				ondragover={handleDragOver}
 				ondrop={(e) => handleDrop(e, 'urgent-important')}
 			>
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-lg font-semibold text-red-200 flex items-center gap-2">
-						<AlertCircle size={22} class="text-red-600" /> Do First
-						<span class="text-sm font-normal text-red-300 block">({urgentImportant.length})</span>
+				<div class="flex items-center justify-between mb-2">
+					<h2 class="text-xs font-semibold text-red-200 flex items-center gap-1.5">
+						<AlertCircle size={14} class="text-red-400" /> Do First
+						<span class="text-[11px] font-normal text-red-400">({urgentImportant.length})</span>
 					</h2>
 					<button
 						onclick={() => quickAddQuadrant = quickAddQuadrant === 'urgent-important' ? null : 'urgent-important'}
-						class="text-red-200 hover:bg-red-900 active:bg-red-800 p-3 min-w-[44px] min-h-[44px] rounded-lg transition touch-manipulation flex items-center justify-center"
-						title="Quick add task"
-					>
-						<Plus size={20} />
-					</button>
+						class="text-red-300 hover:bg-red-900 p-1 rounded transition touch-manipulation"
+						title="Add task"
+					><Plus size={14} /></button>
 				</div>
 
 				{#if quickAddQuadrant === 'urgent-important'}
-					<div class="mb-4 p-4 bg-gray-900 rounded-lg border-2 border-red-300">
+					<div class="mb-2 p-2 bg-gray-900 rounded border border-red-800">
 						<input
 							type="text"
 							bind:value={quickAddTitle}
-							placeholder="Quick task..."
-							class="w-full px-4 py-3 min-h-[48px] bg-gray-800 border border-red-900 rounded-lg text-base mb-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 touch-manipulation"
+							placeholder="Task title..."
+							class="w-full px-2 py-1.5 bg-gray-800 border border-red-900 rounded text-xs mb-2 text-white focus:outline-none focus:ring-1 focus:ring-red-500 touch-manipulation"
 						/>
-						<div class="flex gap-3">
-							<button
-								onclick={handleQuickAddToQuadrant}
-								class="flex-1 bg-red-600 text-white px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-red-700 active:bg-red-800 font-medium touch-manipulation"
-							>
-								Add
-							</button>
-							<button
-								onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }}
-								class="flex-1 bg-gray-700 text-gray-300 px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
-							>
-								Cancel
-							</button>
+						<div class="flex gap-1.5">
+							<button onclick={handleQuickAddToQuadrant} class="flex-1 bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 font-medium touch-manipulation">Add</button>
+							<button onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600 touch-manipulation">Cancel</button>
 						</div>
 					</div>
 				{/if}
 
-				<div class="space-y-2">
+				<div class="space-y-1.5">
 					{#each urgentImportant as task}
 						{#if editingTaskId === task.id && editingTask}
-							<!-- Edit Mode -->
-							<div class="bg-gray-900 rounded-lg shadow-sm p-3 border-2 border-red-500">
-								<input
-									type="text"
-									bind:value={editingTask.title}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-									placeholder="Task title"
-								/>
-								<textarea
-									bind:value={editingTask.description}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-									placeholder="Description"
-									rows="2"
-								/>
-								<div class="flex gap-2">
-									<button
-										onclick={handleSaveEditedTask}
-										class="flex-1 bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700 font-medium"
-									>
-										Save
-									</button>
-									<button
-										onclick={cancelEditTask}
-										class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-600"
-									>
-										Cancel
-									</button>
+							<div class="bg-gray-900 rounded p-2 border-l-2 border-red-500">
+								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="Task title" />
+								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-red-500 resize-none" placeholder="Description" rows="2" />
+								<div class="flex gap-1.5">
+									<button onclick={handleSaveEditedTask} class="flex-1 bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 font-medium">Save</button>
+									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
 								</div>
 							</div>
 						{:else}
-							<!-- Display Mode -->
-							<div 
-								class="bg-gray-900 rounded-lg shadow-sm p-4 border-l-4 border-red-500 cursor-move hover:shadow-md transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50 scale-95' : ''} {isTouchDragging && touchMoveTask?.id === task.id ? 'shadow-2xl z-10' : ''}"
+							<div
+								class="bg-gray-900 rounded p-2 border-l-2 border-red-500 cursor-move hover:shadow transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50' : ''}"
 								draggable="true"
 								ondragstart={() => handleDragStart(task, 'urgent-important')}
 								ondragend={handleDragEnd}
@@ -1042,111 +911,70 @@
 								ontouchmove={handleTouchMove}
 								ontouchend={handleTouchEnd}
 							>
-								<div class="flex justify-between items-start gap-3">
-									<div class="flex-1">
-										<h3 class="font-medium text-white text-base leading-relaxed">{task.title}</h3></div>
-									<button
-										onclick={() => startEditTask(task)}
-										class="text-purple-400 hover:text-purple-300 active:text-purple-500 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center touch-manipulation"
-										title="Edit"
-									>
-										<Edit2 size={18} />
-									</button>
-								</div>
-								<div class="flex gap-3 mt-3">
-									<button onclick={() => handleDeleteTask(task.id)} class="text-sm text-red-400 hover:text-red-300 active:underline py-2 px-3 min-h-[40px] touch-manipulation">Delete</button>
+								<div class="flex items-center justify-between gap-1">
+									<h3 class="text-xs font-medium text-white leading-tight flex-1">{task.title}</h3>
+									<div class="flex items-center gap-1.5 shrink-0">
+										<button onclick={() => startEditTask(task)} class="text-purple-400 hover:text-purple-300 touch-manipulation"><Edit2 size={12} /></button>
+										<button onclick={() => handleDeleteTask(task.id)} class="text-[11px] text-red-400 hover:text-red-300 touch-manipulation">Del</button>
+									</div>
 								</div>
 							</div>
 						{/if}
 					{/each}
 					{#if urgentImportant.length === 0 && quickAddQuadrant !== 'urgent-important'}
-						<p class="text-xs text-gray-400 text-center py-4">Drop tasks here</p>
+						<p class="text-[11px] text-gray-500 text-center py-3">Drop tasks here</p>
 					{/if}
 				</div>
 			</div>
-			
+
 			<!-- Not Urgent & Important (Schedule) -->
-			<div 
+			<div
 				data-quadrant="not-urgent-important"
-				class="bg-blue-950 border-2 border-blue-900 rounded-lg p-5 min-h-[400px] transition-all touch-pan-y {draggedFromQuadrant !== 'not-urgent-important' && draggedTask ? 'ring-4 ring-green-400' : ''} {touchTargetQuadrant === 'not-urgent-important' ? 'ring-4 ring-green-400 bg-blue-900' : ''}"
+				class="bg-blue-950 border border-blue-900 rounded-lg p-2.5 transition-all touch-pan-y {draggedFromQuadrant !== 'not-urgent-important' && draggedTask ? 'ring-2 ring-green-400' : ''} {touchTargetQuadrant === 'not-urgent-important' ? 'ring-2 ring-green-400 bg-blue-900' : ''}"
 				ondragover={handleDragOver}
 				ondrop={(e) => handleDrop(e, 'not-urgent-important')}
 			>
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-lg font-semibold text-blue-200 flex items-center gap-2">
-						<Calendar size={22} class="text-blue-600" /> Schedule
-						<span class="text-sm font-normal text-blue-300 block">({notUrgentImportant.length})</span>
+				<div class="flex items-center justify-between mb-2">
+					<h2 class="text-xs font-semibold text-blue-200 flex items-center gap-1.5">
+						<Calendar size={14} class="text-blue-400" /> Schedule
+						<span class="text-[11px] font-normal text-blue-400">({notUrgentImportant.length})</span>
 					</h2>
 					<button
 						onclick={() => quickAddQuadrant = quickAddQuadrant === 'not-urgent-important' ? null : 'not-urgent-important'}
-						class="text-blue-200 hover:bg-blue-900 active:bg-blue-800 p-3 min-w-[44px] min-h-[44px] rounded-lg transition touch-manipulation flex items-center justify-center"
-						title="Quick add task"
-					>
-						<Plus size={20} />
-					</button>
+						class="text-blue-300 hover:bg-blue-900 p-1 rounded transition touch-manipulation"
+						title="Add task"
+					><Plus size={14} /></button>
 				</div>
 
 				{#if quickAddQuadrant === 'not-urgent-important'}
-					<div class="mb-4 p-4 bg-gray-900 rounded-lg border-2 border-blue-300">
+					<div class="mb-2 p-2 bg-gray-900 rounded border border-blue-800">
 						<input
 							type="text"
 							bind:value={quickAddTitle}
-							placeholder="Quick task..."
-							class="w-full px-4 py-3 min-h-[48px] bg-gray-800 border border-blue-900 rounded-lg text-base mb-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+							placeholder="Task title..."
+							class="w-full px-2 py-1.5 bg-gray-800 border border-blue-900 rounded text-xs mb-2 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation"
 						/>
-						<div class="flex gap-3">
-							<button
-								onclick={handleQuickAddToQuadrant}
-								class="flex-1 bg-blue-600 text-white px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-blue-700 active:bg-blue-800 font-medium touch-manipulation"
-							>
-								Add
-							</button>
-							<button
-								onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }}
-								class="flex-1 bg-gray-700 text-gray-300 px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
-							>
-								Cancel
-							</button>
+						<div class="flex gap-1.5">
+							<button onclick={handleQuickAddToQuadrant} class="flex-1 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 font-medium touch-manipulation">Add</button>
+							<button onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600 touch-manipulation">Cancel</button>
 						</div>
 					</div>
 				{/if}
 
-				<div class="space-y-2">
+				<div class="space-y-1.5">
 					{#each notUrgentImportant as task}
 						{#if editingTaskId === task.id && editingTask}
-							<!-- Edit Mode -->
-							<div class="bg-gray-900 rounded-lg shadow-sm p-3 border-2 border-blue-500">
-								<input
-									type="text"
-									bind:value={editingTask.title}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-									placeholder="Task title"
-								/>
-								<textarea
-									bind:value={editingTask.description}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-									placeholder="Description"
-									rows="2"
-								/>
-								<div class="flex gap-2">
-									<button
-										onclick={handleSaveEditedTask}
-										class="flex-1 bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700 font-medium"
-									>
-										Save
-									</button>
-									<button
-										onclick={cancelEditTask}
-										class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-600"
-									>
-										Cancel
-									</button>
+							<div class="bg-gray-900 rounded p-2 border-l-2 border-blue-500">
+								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Task title" />
+								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Description" rows="2" />
+								<div class="flex gap-1.5">
+									<button onclick={handleSaveEditedTask} class="flex-1 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 font-medium">Save</button>
+									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
 								</div>
 							</div>
 						{:else}
-							<!-- Display Mode -->
-							<div 
-								class="bg-gray-900 rounded-lg shadow-sm p-4 border-l-4 border-blue-500 cursor-move hover:shadow-md transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50 scale-95' : ''} {isTouchDragging && touchMoveTask?.id === task.id ? 'shadow-2xl z-10' : ''}"
+							<div
+								class="bg-gray-900 rounded p-2 border-l-2 border-blue-500 cursor-move hover:shadow transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50' : ''}"
 								draggable="true"
 								ondragstart={() => handleDragStart(task, 'not-urgent-important')}
 								ondragend={handleDragEnd}
@@ -1154,111 +982,70 @@
 								ontouchmove={handleTouchMove}
 								ontouchend={handleTouchEnd}
 							>
-								<div class="flex justify-between items-start gap-3">
-									<div class="flex-1">
-										<h3 class="font-medium text-white text-base leading-relaxed">{task.title}</h3></div>
-									<button
-										onclick={() => startEditTask(task)}
-										class="text-purple-400 hover:text-purple-300 active:text-purple-500 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center touch-manipulation"
-										title="Edit"
-									>
-										<Edit2 size={18} />
-									</button>
-								</div>
-								<div class="flex gap-3 mt-3">
-									<button onclick={() => handleDeleteTask(task.id)} class="text-sm text-red-400 hover:text-red-300 active:underline py-2 px-3 min-h-[40px] touch-manipulation">Delete</button>
+								<div class="flex items-center justify-between gap-1">
+									<h3 class="text-xs font-medium text-white leading-tight flex-1">{task.title}</h3>
+									<div class="flex items-center gap-1.5 shrink-0">
+										<button onclick={() => startEditTask(task)} class="text-purple-400 hover:text-purple-300 touch-manipulation"><Edit2 size={12} /></button>
+										<button onclick={() => handleDeleteTask(task.id)} class="text-[11px] text-red-400 hover:text-red-300 touch-manipulation">Del</button>
+									</div>
 								</div>
 							</div>
 						{/if}
 					{/each}
 					{#if notUrgentImportant.length === 0 && quickAddQuadrant !== 'not-urgent-important'}
-						<p class="text-xs text-gray-400 text-center py-4">Drop tasks here</p>
+						<p class="text-[11px] text-gray-500 text-center py-3">Drop tasks here</p>
 					{/if}
 				</div>
 			</div>
-			
+
 			<!-- Urgent & Not Important (Delegate) -->
-			<div 
+			<div
 				data-quadrant="urgent-not-important"
-				class="bg-yellow-950 border-2 border-yellow-800 rounded-lg p-5 min-h-[400px] transition-all touch-pan-y {draggedFromQuadrant !== 'urgent-not-important' && draggedTask ? 'ring-4 ring-green-400' : ''} {touchTargetQuadrant === 'urgent-not-important' ? 'ring-4 ring-green-400 bg-yellow-900' : ''}"
+				class="bg-yellow-950 border border-yellow-800 rounded-lg p-2.5 transition-all touch-pan-y {draggedFromQuadrant !== 'urgent-not-important' && draggedTask ? 'ring-2 ring-green-400' : ''} {touchTargetQuadrant === 'urgent-not-important' ? 'ring-2 ring-green-400 bg-yellow-900' : ''}"
 				ondragover={handleDragOver}
 				ondrop={(e) => handleDrop(e, 'urgent-not-important')}
 			>
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-lg font-semibold text-yellow-300 flex items-center gap-2">
-						<Users size={22} class="text-yellow-600" /> Delegate
-						<span class="text-sm font-normal text-yellow-300 block">({urgentNotImportant.length})</span>
+				<div class="flex items-center justify-between mb-2">
+					<h2 class="text-xs font-semibold text-yellow-200 flex items-center gap-1.5">
+						<Users size={14} class="text-yellow-500" /> Delegate
+						<span class="text-[11px] font-normal text-yellow-400">({urgentNotImportant.length})</span>
 					</h2>
 					<button
 						onclick={() => quickAddQuadrant = quickAddQuadrant === 'urgent-not-important' ? null : 'urgent-not-important'}
-						class="text-yellow-200 hover:bg-yellow-900 active:bg-yellow-800 p-3 min-w-[44px] min-h-[44px] rounded-lg transition touch-manipulation flex items-center justify-center"
-						title="Quick add task"
-					>
-						<Plus size={20} />
-					</button>
+						class="text-yellow-300 hover:bg-yellow-900 p-1 rounded transition touch-manipulation"
+						title="Add task"
+					><Plus size={14} /></button>
 				</div>
 
 				{#if quickAddQuadrant === 'urgent-not-important'}
-					<div class="mb-4 p-4 bg-gray-900 rounded-lg border-2 border-yellow-300">
+					<div class="mb-2 p-2 bg-gray-900 rounded border border-yellow-800">
 						<input
 							type="text"
 							bind:value={quickAddTitle}
-							placeholder="Quick task..."
-							class="w-full px-4 py-3 min-h-[48px] bg-gray-800 border border-yellow-800 rounded-lg text-base mb-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 touch-manipulation"
+							placeholder="Task title..."
+							class="w-full px-2 py-1.5 bg-gray-800 border border-yellow-900 rounded text-xs mb-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 touch-manipulation"
 						/>
-						<div class="flex gap-3">
-							<button
-								onclick={handleQuickAddToQuadrant}
-								class="flex-1 bg-yellow-600 text-white px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-yellow-700 active:bg-yellow-800 font-medium touch-manipulation"
-							>
-								Add
-							</button>
-							<button
-								onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }}
-								class="flex-1 bg-gray-700 text-gray-300 px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
-							>
-								Cancel
-							</button>
+						<div class="flex gap-1.5">
+							<button onclick={handleQuickAddToQuadrant} class="flex-1 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700 font-medium touch-manipulation">Add</button>
+							<button onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600 touch-manipulation">Cancel</button>
 						</div>
 					</div>
 				{/if}
 
-				<div class="space-y-2">
+				<div class="space-y-1.5">
 					{#each urgentNotImportant as task}
 						{#if editingTaskId === task.id && editingTask}
-							<!-- Edit Mode -->
-							<div class="bg-gray-900 rounded-lg shadow-sm p-3 border-2 border-yellow-500">
-								<input
-									type="text"
-									bind:value={editingTask.title}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-									placeholder="Task title"
-								/>
-								<textarea
-									bind:value={editingTask.description}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
-									placeholder="Description"
-									rows="2"
-								/>
-								<div class="flex gap-2">
-									<button
-										onclick={handleSaveEditedTask}
-										class="flex-1 bg-yellow-600 text-white px-2 py-1 rounded text-sm hover:bg-yellow-700 font-medium"
-									>
-										Save
-									</button>
-									<button
-										onclick={cancelEditTask}
-										class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-600"
-									>
-										Cancel
-									</button>
+							<div class="bg-gray-900 rounded p-2 border-l-2 border-yellow-500">
+								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500" placeholder="Task title" />
+								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none" placeholder="Description" rows="2" />
+								<div class="flex gap-1.5">
+									<button onclick={handleSaveEditedTask} class="flex-1 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700 font-medium">Save</button>
+									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
 								</div>
 							</div>
 						{:else}
-							<!-- Display Mode -->
-							<div 
-								class="bg-gray-900 rounded-lg shadow-sm p-4 border-l-4 border-yellow-500 cursor-move hover:shadow-md transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50 scale-95' : ''} {isTouchDragging && touchMoveTask?.id === task.id ? 'shadow-2xl z-10' : ''}"
+							<div
+								class="bg-gray-900 rounded p-2 border-l-2 border-yellow-500 cursor-move hover:shadow transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50' : ''}"
 								draggable="true"
 								ondragstart={() => handleDragStart(task, 'urgent-not-important')}
 								ondragend={handleDragEnd}
@@ -1266,111 +1053,70 @@
 								ontouchmove={handleTouchMove}
 								ontouchend={handleTouchEnd}
 							>
-								<div class="flex justify-between items-start gap-3">
-									<div class="flex-1">
-										<h3 class="font-medium text-white text-base leading-relaxed">{task.title}</h3></div>
-									<button
-										onclick={() => startEditTask(task)}
-										class="text-purple-400 hover:text-purple-300 active:text-purple-500 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center touch-manipulation"
-										title="Edit"
-									>
-										<Edit2 size={18} />
-									</button>
-								</div>
-								<div class="flex gap-3 mt-3">
-									<button onclick={() => handleDeleteTask(task.id)} class="text-sm text-red-400 hover:text-red-300 active:underline py-2 px-3 min-h-[40px] touch-manipulation">Delete</button>
+								<div class="flex items-center justify-between gap-1">
+									<h3 class="text-xs font-medium text-white leading-tight flex-1">{task.title}</h3>
+									<div class="flex items-center gap-1.5 shrink-0">
+										<button onclick={() => startEditTask(task)} class="text-purple-400 hover:text-purple-300 touch-manipulation"><Edit2 size={12} /></button>
+										<button onclick={() => handleDeleteTask(task.id)} class="text-[11px] text-red-400 hover:text-red-300 touch-manipulation">Del</button>
+									</div>
 								</div>
 							</div>
 						{/if}
 					{/each}
 					{#if urgentNotImportant.length === 0 && quickAddQuadrant !== 'urgent-not-important'}
-						<p class="text-xs text-gray-400 text-center py-4">Drop tasks here</p>
+						<p class="text-[11px] text-gray-500 text-center py-3">Drop tasks here</p>
 					{/if}
 				</div>
 			</div>
-			
+
 			<!-- Not Urgent & Not Important (Eliminate) -->
-			<div 
+			<div
 				data-quadrant="not-urgent-not-important"
-				class="bg-gray-950 border-2 border-gray-700 rounded-lg p-5 min-h-[400px] transition-all touch-pan-y {draggedFromQuadrant !== 'not-urgent-not-important' && draggedTask ? 'ring-4 ring-green-400' : ''} {touchTargetQuadrant === 'not-urgent-not-important' ? 'ring-4 ring-green-400 bg-gray-800' : ''}"
+				class="bg-gray-900 border border-gray-700 rounded-lg p-2.5 transition-all touch-pan-y {draggedFromQuadrant !== 'not-urgent-not-important' && draggedTask ? 'ring-2 ring-green-400' : ''} {touchTargetQuadrant === 'not-urgent-not-important' ? 'ring-2 ring-green-400 bg-gray-800' : ''}"
 				ondragover={handleDragOver}
 				ondrop={(e) => handleDrop(e, 'not-urgent-not-important')}
 			>
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-lg font-semibold text-white flex items-center gap-2">
-						<Trash size={22} class="text-gray-400" /> Eliminate
-						<span class="text-sm font-normal text-gray-400 block">({notUrgentNotImportant.length})</span>
+				<div class="flex items-center justify-between mb-2">
+					<h2 class="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+						<Trash size={14} class="text-gray-400" /> Eliminate
+						<span class="text-[11px] font-normal text-gray-500">({notUrgentNotImportant.length})</span>
 					</h2>
 					<button
 						onclick={() => quickAddQuadrant = quickAddQuadrant === 'not-urgent-not-important' ? null : 'not-urgent-not-important'}
-						class="text-gray-400 hover:bg-gray-800 active:bg-gray-700 p-3 min-w-[44px] min-h-[44px] rounded-lg transition touch-manipulation flex items-center justify-center"
-						title="Quick add task"
-					>
-						<Plus size={20} />
-					</button>
+						class="text-gray-400 hover:bg-gray-700 p-1 rounded transition touch-manipulation"
+						title="Add task"
+					><Plus size={14} /></button>
 				</div>
 
 				{#if quickAddQuadrant === 'not-urgent-not-important'}
-					<div class="mb-4 p-4 bg-gray-900 rounded-lg border-2 border-gray-300">
+					<div class="mb-2 p-2 bg-gray-800 rounded border border-gray-600">
 						<input
 							type="text"
 							bind:value={quickAddTitle}
-							placeholder="Quick task..."
-							class="w-full px-4 py-3 min-h-[48px] bg-gray-800 border border-gray-700 rounded-lg text-base mb-3 text-white focus:outline-none focus:ring-2 focus:ring-gray-500 touch-manipulation"
+							placeholder="Task title..."
+							class="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs mb-2 text-white focus:outline-none focus:ring-1 focus:ring-gray-400 touch-manipulation"
 						/>
-						<div class="flex gap-3">
-							<button
-								onclick={handleQuickAddToQuadrant}
-								class="flex-1 bg-gray-600 text-white px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-gray-700 active:bg-gray-800 font-medium touch-manipulation"
-							>
-								Add
-							</button>
-							<button
-								onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }}
-								class="flex-1 bg-gray-700 text-gray-300 px-4 py-3 min-h-[48px] rounded-lg text-base hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
-							>
-								Cancel
-							</button>
+						<div class="flex gap-1.5">
+							<button onclick={handleQuickAddToQuadrant} class="flex-1 bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-500 font-medium touch-manipulation">Add</button>
+							<button onclick={() => { quickAddQuadrant = null; quickAddTitle = ''; }} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600 touch-manipulation">Cancel</button>
 						</div>
 					</div>
 				{/if}
 
-				<div class="space-y-2">
+				<div class="space-y-1.5">
 					{#each notUrgentNotImportant as task}
 						{#if editingTaskId === task.id && editingTask}
-							<!-- Edit Mode -->
-							<div class="bg-gray-900 rounded-lg shadow-sm p-3 border-2 border-gray-500">
-								<input
-									type="text"
-									bind:value={editingTask.title}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
-									placeholder="Task title"
-								/>
-								<textarea
-									bind:value={editingTask.description}
-									class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-sm mb-2 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none"
-									placeholder="Description"
-									rows="2"
-								/>
-								<div class="flex gap-2">
-									<button
-										onclick={handleSaveEditedTask}
-										class="flex-1 bg-gray-600 text-white px-2 py-1 rounded text-sm hover:bg-gray-700 font-medium"
-									>
-										Save
-									</button>
-									<button
-										onclick={cancelEditTask}
-										class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-600"
-									>
-										Cancel
-									</button>
+							<div class="bg-gray-800 rounded p-2 border-l-2 border-gray-500">
+								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-gray-400" placeholder="Task title" />
+								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-gray-400 resize-none" placeholder="Description" rows="2" />
+								<div class="flex gap-1.5">
+									<button onclick={handleSaveEditedTask} class="flex-1 bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-500 font-medium">Save</button>
+									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
 								</div>
 							</div>
 						{:else}
-							<!-- Display Mode -->
-							<div 
-								class="bg-gray-900 rounded-lg shadow-sm p-4 border-l-4 border-gray-400 cursor-move hover:shadow-md transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50 scale-95' : ''} {isTouchDragging && touchMoveTask?.id === task.id ? 'shadow-2xl z-10' : ''}"
+							<div
+								class="bg-gray-800 rounded p-2 border-l-2 border-gray-500 cursor-move hover:shadow transition touch-none select-none {draggedTask?.id === task.id ? 'opacity-50' : ''}"
 								draggable="true"
 								ondragstart={() => handleDragStart(task, 'not-urgent-not-important')}
 								ondragend={handleDragEnd}
@@ -1378,41 +1124,31 @@
 								ontouchmove={handleTouchMove}
 								ontouchend={handleTouchEnd}
 							>
-								<div class="flex justify-between items-start gap-3">
-									<div class="flex-1">
-										<h3 class="font-medium text-white text-base leading-relaxed">{task.title}</h3></div>
-									<button
-										onclick={() => startEditTask(task)}
-										class="text-purple-400 hover:text-purple-300 active:text-purple-500 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center touch-manipulation"
-										title="Edit"
-									>
-										<Edit2 size={18} />
-									</button>
-								</div>
-								<div class="flex gap-3 mt-3">
-									<button onclick={() => handleDeleteTask(task.id)} class="text-sm text-red-400 hover:text-red-300 active:underline py-2 px-3 min-h-[40px] touch-manipulation">Delete</button>
+								<div class="flex items-center justify-between gap-1">
+									<h3 class="text-xs font-medium text-white leading-tight flex-1">{task.title}</h3>
+									<div class="flex items-center gap-1.5 shrink-0">
+										<button onclick={() => startEditTask(task)} class="text-purple-400 hover:text-purple-300 touch-manipulation"><Edit2 size={12} /></button>
+										<button onclick={() => handleDeleteTask(task.id)} class="text-[11px] text-red-400 hover:text-red-300 touch-manipulation">Del</button>
+									</div>
 								</div>
 							</div>
 						{/if}
 					{/each}
 					{#if notUrgentNotImportant.length === 0 && quickAddQuadrant !== 'not-urgent-not-important'}
-						<p class="text-xs text-gray-400 text-center py-4">Drop tasks here</p>
+						<p class="text-[11px] text-gray-500 text-center py-3">Drop tasks here</p>
 					{/if}
 				</div>
 			</div>
 		</div>
-		
-		<div class="bg-blue-950 border border-blue-900 rounded-lg p-4 mt-4">
-			<h3 class="font-semibold text-blue-200 mb-2 flex items-center gap-2"><Lightbulb size={20} class="text-blue-600" /> Eisenhower Matrix Guide</h3>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-300">
-				<div><strong>Do First:</strong> Critical deadlines & crises</div>
-				<div><strong>Schedule:</strong> Long-term goals & planning</div>
-				<div><strong>Delegate:</strong> Interruptions & some emails</div>
-				<div><strong>Eliminate:</strong> Time wasters & distractions</div>
+
+		<div class="bg-blue-950 border border-blue-900 rounded-lg p-2.5 mt-2">
+			<h3 class="text-xs font-semibold text-blue-200 mb-1.5 flex items-center gap-1.5"><Lightbulb size={13} class="text-blue-400" /> Matrix Guide</h3>
+			<div class="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[11px] text-blue-300">
+				<div><strong>Do First:</strong> Critical deadlines</div>
+				<div><strong>Schedule:</strong> Long-term goals</div>
+				<div><strong>Delegate:</strong> Interruptions</div>
+				<div><strong>Eliminate:</strong> Time wasters</div>
 			</div>
-			<p class="text-xs text-blue-300 mt-2 flex items-center gap-1">
-				<Lightbulb size={14} class="text-blue-600" /> Tasks are automatically categorized based on priority and due date (within 3 days = urgent)
-			</p>
 		</div>
 	{/if}
 </div>

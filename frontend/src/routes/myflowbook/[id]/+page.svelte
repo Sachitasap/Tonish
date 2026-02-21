@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { notebookAPI, pageAPI } from '$lib/api';	import { Plus, Search, Pin, Download, Trash2, Edit2, Eye, Menu, X, Copy, ArrowLeft, Tag, Book, Lightbulb } from 'lucide-svelte';
+	import { notebookAPI, pageAPI } from '$lib/api';	import { Plus, Search, Pin, Download, Trash2, Edit2, Eye, Menu, X, Copy, ArrowLeft, Tag, Book, Lightbulb, ChevronDown, FileDown } from 'lucide-svelte';
 
 	type NotebookPage = {
 		id: number;
@@ -32,6 +32,7 @@
 	let isSearching = $state(false);
 	let sidebarCollapsed = $state(false);
 	let showCopyNotification = $state(false);
+	let showExportMenu = $state(false);
 
 	let newPage = $state<{ title: string; content: string; tags: string }>({
 		title: '',
@@ -268,166 +269,194 @@
 		return content
 			.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
 			.replace(/\*(.*?)\*/g, '<em>$1</em>')
-			.replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded">$1</code>')
+				.replace(/`(.*?)`/g, '<code class="bg-gray-700 text-gray-200 px-1 rounded">$1</code>')
 			.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>')
 			.replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-3 mb-2">$1</h2>')
 			.replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-2 mb-1">$1</h3>')
 			.replace(/\n/g, '<br>');
 	}
 	
-	// Export functions
+	// ── Export helpers ──────────────────────────────────────────
+	function safeFileName(name: string) {
+		return name.replace(/[^a-z0-9_\-]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+	}
+
+	function downloadBlob(blob: Blob, filename: string) {
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	}
+
+	function fireToast(msg: string, type: 'success' | 'error' = 'success') {
+		showNotification = true;
+		notificationMessage = msg;
+		notificationType = type;
+		showExportMenu = false;
+		setTimeout(() => showNotification = false, 2500);
+	}
+
+	// ── Notebook-wide exports ─────────────────────────────────────
 	function exportToText() {
 		if (!notebook) return;
-		
-		let content = `Export from Tonish ; By Sailendra\n${'='.repeat(38)}\n\n`;
-		content += `${notebook.name}\n${'='.repeat(notebook.name.length)}\n\n`;
-		
-		pages.forEach(page => {
-			content += `\n${page.title}\n${'-'.repeat(page.title.length)}\n\n`;
-			content += `${page.content}\n\n`;
-			if (page.tags) {
-				content += `Tags: ${page.tags}\n\n`;
-			}
-			content += `Created: ${formatDateTime(page.created_at)}\n`;
-			content += `Updated: ${formatDateTime(page.updated_at)}\n\n`;
-			content += '---\n';
+		const divider = '─'.repeat(48);
+		let content = `Tonish – MyFlowBook Export\n${divider}\nNotebook : ${notebook.name}\nPages    : ${pages.length}\nExported : ${new Date().toLocaleString()}\n${divider}\n\n`;
+		pages.forEach((p, i) => {
+			content += `[${i + 1}] ${p.title}\n${'─'.repeat(p.title.length + 4)}\n\n`;
+			content += `${p.content}\n\n`;
+			if (p.tags) content += `Tags    : ${p.tags}\n`;
+			content += `Created : ${formatDateTime(p.created_at)}\nUpdated : ${formatDateTime(p.updated_at)}\n\n${divider}\n\n`;
 		});
-		
-		const blob = new Blob([content], { type: 'text/plain' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${notebook.name.replace(/\s+/g, '_')}.txt`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
+		downloadBlob(new Blob([content], { type: 'text/plain;charset=utf-8' }), `${safeFileName(notebook.name)}.txt`);
+		fireToast('✓ Exported as .TXT');
 	}
-	
+
 	function exportToCSV() {
 		if (!notebook) return;
-		
-		let csv = '"Export from Tonish ; By Sailendra"\n\n';
-		csv += 'Title,Content,Tags,Created,Updated\n';
-		
-		pages.forEach(page => {
-			const title = `"${page.title.replace(/"/g, '""')}"`;
-			const content = `"${page.content.replace(/"/g, '""')}"`;
-			const tags = `"${(page.tags || '').replace(/"/g, '""')}"`;
-			const created = toIsoString(page.created_at);
-			const updated = toIsoString(page.updated_at);
-			
-			csv += `${title},${content},${tags},${created},${updated}\n`;
+		const esc = (s: string) => `"${(s ?? '').replace(/"/g, '""')}"`;
+		let csv = `${esc('Notebook')},${esc('Title')},${esc('Content')},${esc('Tags')},${esc('Created')},${esc('Updated')}\n`;
+		pages.forEach(p => {
+			csv += `${esc(notebook!.name)},${esc(p.title)},${esc(p.content)},${esc(p.tags ?? '')},${esc(toIsoString(p.created_at))},${esc(toIsoString(p.updated_at))}\n`;
 		});
-		
-		const blob = new Blob([csv], { type: 'text/csv' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${notebook.name.replace(/\s+/g, '_')}.csv`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
+		downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `${safeFileName(notebook.name)}.csv`);
+		fireToast('✓ Exported as .CSV');
 	}
-	
+
 	function exportToMarkdown() {
 		if (!notebook) return;
-		
-		let content = `# Export from Tonish ; By Sailendra\n\n`;
-		content += `# ${notebook.name}\n\n`;
-		
-		if (notebook.tags) {
-			content += `**Tags:** ${notebook.tags}\n\n`;
-		}
-		
-		content += `---\n\n`;
-		
-		pages.forEach(page => {
-			content += `## ${page.title}\n\n`;
-			content += `${page.content}\n\n`;
-			if (page.tags) {
-				content += `*Tags: ${page.tags}*\n\n`;
-			}
-			content += `<small>Created: ${formatDateTime(page.created_at)} | Updated: ${formatDateTime(page.updated_at)}</small>\n\n`;
-			content += '---\n\n';
+		let md = `# ${notebook.name}\n\n`;
+		if (notebook.tags) md += `**Tags:** ${notebook.tags}\n\n`;
+		md += `*${pages.length} page${pages.length !== 1 ? 's' : ''} · Exported ${new Date().toLocaleDateString()}*\n\n---\n\n`;
+		pages.forEach(p => {
+			md += `## ${p.title}\n\n${p.content}\n\n`;
+			if (p.tags) md += `> **Tags:** ${p.tags}\n\n`;
+			md += `<sub>Created: ${formatDateTime(p.created_at)} · Updated: ${formatDateTime(p.updated_at)}</sub>\n\n---\n\n`;
 		});
-		
-		const blob = new Blob([content], { type: 'text/markdown' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${notebook.name.replace(/\s+/g, '_')}.md`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
+		md += `\n*Exported from [Tonish](/) · ${new Date().toLocaleString()}*\n`;
+		downloadBlob(new Blob([md], { type: 'text/markdown;charset=utf-8' }), `${safeFileName(notebook.name)}.md`);
+		fireToast('✓ Exported as .MD');
 	}
-	
+
+	function exportToJSON() {
+		if (!notebook) return;
+		const data = {
+			exportedAt: new Date().toISOString(),
+			exportedFrom: 'Tonish – MyFlowBook',
+			notebook: { id: notebook.id, name: notebook.name, tags: notebook.tags, is_pinned: notebook.is_pinned },
+			pages: pages.map(p => ({
+				id: p.id, title: p.title, content: p.content,
+				tags: p.tags, is_pinned: p.is_pinned,
+				created_at: p.created_at, updated_at: p.updated_at,
+			})),
+		};
+		downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `${safeFileName(notebook.name)}.json`);
+		fireToast('✓ Exported as .JSON');
+	}
+
 	function exportToPDF() {
 		if (!notebook) return;
-		
-		// Create a hidden container for the content
-		const printContainer = document.createElement('div');
-		printContainer.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 210mm; padding: 20mm; background: white; font-family: Arial, sans-serif;';
-		
-		let htmlContent = `
-			<div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #8b5cf6;">
-				<h1 style="color: #6366f1; font-size: 28px; margin: 0;">Export from Tonish ; By Sailendra</h1>
-			</div>
-			<h1 style="color: #1f2937; font-size: 32px; margin-bottom: 10px;">${notebook.name}</h1>
-		`;
-		
-		if (notebook.tags) {
-			htmlContent += `<p style="color: #6b7280; margin-bottom: 20px;"><strong>Tags:</strong> ${notebook.tags}</p>`;
+		const win = window.open('', '_blank');
+		if (!win) {
+			fireToast('Popup blocked – allow popups to export PDF', 'error');
+			return;
 		}
-		
-		htmlContent += `<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />`;
-		
-		pages.forEach(page => {
-			htmlContent += `
-				<div style="margin-bottom: 30px; page-break-inside: avoid;">
-					<h2 style="color: #4f46e5; font-size: 24px; margin-bottom: 10px;">${page.title}</h2>
-					<div style="color: #374151; line-height: 1.6; white-space: pre-wrap;">${page.content}</div>
-					${page.tags ? `<p style="color: #9ca3af; font-size: 12px; margin-top: 10px;"><em>Tags: ${page.tags}</em></p>` : ''}
-					<p style="color: #9ca3af; font-size: 11px; margin-top: 5px;">Created: ${formatDateTime(page.created_at)} | Updated: ${formatDateTime(page.updated_at)}</p>
-					<hr style="border: none; border-top: 1px dashed #e5e7eb; margin: 20px 0;" />
+		const exportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+		const renderContent = (text: string) => text
+			.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+			.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+			.replace(/\*(.*?)\*/g, '<em>$1</em>')
+			.replace(/`(.*?)`/g, '<code>$1</code>');
+		let body = '';
+		pages.forEach((p, i) => {
+			body += `
+				<div class="page-block">
+					<div class="page-num">Page ${i + 1} of ${pages.length}</div>
+					<h2 class="page-title">${p.title}</h2>
+					<div class="page-meta">Created: ${formatDateOnly(p.created_at)} &nbsp;·&nbsp; Updated: ${formatDateOnly(p.updated_at)}</div>
+					${p.tags ? `<div class="page-tags">${p.tags.split(',').filter(t => t.trim()).map(t => `<span>${t.trim()}</span>`).join('')}</div>` : ''}
+					<div class="page-content">${renderContent(p.content)}</div>
 				</div>
 			`;
 		});
-		
-		printContainer.innerHTML = htmlContent;
-		document.body.appendChild(printContainer);
-		
-		// Print
-		const originalContent = document.body.innerHTML;
-		document.body.innerHTML = printContainer.innerHTML;
-		
-		// Set print styles
-		const style = document.createElement('style');
-		style.textContent = '@page { margin: 20mm; } body { margin: 0; }';
-		document.head.appendChild(style);
-		
-		window.print();
-		
-		// Restore original content
-		document.body.innerHTML = originalContent;
-		location.reload(); // Reload to restore event listeners
+		win.document.write(`<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>${notebook.name} – Tonish Export</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: #1f2937; padding: 24mm 20mm 20mm; font-size: 14px; line-height: 1.6; }
+  .export-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #7c3aed; padding-bottom: 12px; margin-bottom: 28px; }
+  .export-header .brand { font-size: 13px; font-weight: 700; color: #7c3aed; letter-spacing: .5px; }
+  .export-header .date { font-size: 11px; color: #9ca3af; }
+  .notebook-title { font-size: 30px; font-weight: 800; color: #111827; margin-bottom: 6px; }
+  .notebook-subtitle { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 0 0 24px; }
+  .page-block { page-break-inside: avoid; margin-bottom: 32px; }
+  .page-num { font-size: 10px; color: #d1d5db; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
+  .page-title { font-size: 20px; font-weight: 700; color: #4f46e5; margin-bottom: 4px; }
+  .page-meta { font-size: 11px; color: #9ca3af; margin-bottom: 8px; }
+  .page-tags { margin-bottom: 10px; }
+  .page-tags span { display: inline-block; background: #ede9fe; color: #5b21b6; border-radius: 999px; font-size: 11px; padding: 2px 10px; margin: 0 4px 4px 0; font-weight: 500; }
+  .page-content { white-space: pre-wrap; color: #374151; line-height: 1.75; border-left: 3px solid #e5e7eb; padding-left: 14px; margin-top: 10px; }
+  .page-content strong { font-weight: 700; }
+  .page-content em { font-style: italic; }
+  .page-content code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; }
+  .page-div { border: none; border-top: 1px dashed #e5e7eb; margin: 28px 0; }
+  .export-footer { margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 10px; text-align: center; color: #9ca3af; font-size: 11px; }
+  @media print { @page { margin: 16mm 14mm; } body { padding: 0; } }
+</style>
+</head><body>
+<div class="export-header"><span class="brand">Tonish · MyFlowBook</span><span class="date">Exported on ${exportDate}</span></div>
+<h1 class="notebook-title">${notebook.name}</h1>
+<p class="notebook-subtitle">${pages.length} page${pages.length !== 1 ? 's' : ''}${notebook.tags ? ' · Tags: ' + notebook.tags : ''}</p>
+<hr class="divider">
+${body}
+<div class="export-footer">Exported from Tonish – ${new Date().toLocaleString()}</div>
+</body></html>`);
+		win.document.close();
+		setTimeout(() => { win.focus(); win.print(); }, 300);
+		fireToast('✓ Print dialog opened');
+	}
+
+	// ── Per-page export ───────────────────────────────────────────
+	function exportCurrentPage(format: 'txt' | 'md') {
+		if (!selectedPage || !notebook) return;
+		let content = '';
+		let mime = 'text/plain;charset=utf-8';
+		if (format === 'txt') {
+			content = `${selectedPage.title}\n${'='.repeat(selectedPage.title.length)}\n\n`;
+			content += `${selectedPage.content}\n\n`;
+			if (selectedPage.tags) content += `Tags    : ${selectedPage.tags}\n`;
+			content += `Created : ${formatDateTime(selectedPage.created_at)}\nUpdated : ${formatDateTime(selectedPage.updated_at)}\n`;
+			content += `\n─`.repeat(40) + `\nExported from Tonish – ${notebook.name}\n`;
+		} else {
+			mime = 'text/markdown;charset=utf-8';
+			content = `# ${selectedPage.title}\n\n${selectedPage.content}\n\n`;
+			if (selectedPage.tags) content += `> **Tags:** ${selectedPage.tags}\n\n`;
+			content += `---\n<sub>Created: ${formatDateTime(selectedPage.created_at)} · Updated: ${formatDateTime(selectedPage.updated_at)}</sub>\n`;
+			content += `\n*Exported from [Tonish](/) – ${notebook.name}*\n`;
+		}
+		downloadBlob(new Blob([content], { type: mime }), `${safeFileName(selectedPage.title)}.${format}`);
+		fireToast(`✓ Page exported as .${format.toUpperCase()}`);
 	}
 </script>
 
 <div class="flex flex-col lg:flex-row min-h-screen">
 	<!-- Sidebar -->
-	<div class={`${sidebarCollapsed ? 'lg:w-16' : 'lg:w-80'} w-full bg-white text-gray-900 transition-all duration-300 lg:flex-shrink-0 overflow-hidden border-r border-gray-200`}>
+	<div class={`${sidebarCollapsed ? 'lg:w-16' : 'lg:w-80'} w-full bg-gray-900 text-white transition-all duration-300 lg:flex-shrink-0 overflow-hidden border-r border-gray-800`}>
 		<div class="p-4 h-full flex flex-col">
 			<!-- Sidebar Header -->
-			<div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-300">
+			<div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
 				{#if !sidebarCollapsed}
-					<h2 class="text-base font-bold text-gray-800">Pages</h2>
+					<h2 class="text-base font-bold text-white">Pages</h2>
 				{/if}
 				<button
 					onclick={() => sidebarCollapsed = !sidebarCollapsed}
-					class="text-gray-700 hover:bg-gray-200 p-2 rounded transition"
+					class="text-gray-400 hover:bg-gray-700 p-2 rounded transition"
 					title={sidebarCollapsed ? 'Expand' : 'Collapse'}
 				>
 					{#if sidebarCollapsed}
@@ -440,30 +469,30 @@
 			
 			{#if !sidebarCollapsed}
 				<!-- Back to All Notebooks -->
-				<a href="/myflowbook" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded transition mb-3 text-sm font-medium text-blue-600">
+				<a href="/myflowbook" class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded transition mb-3 text-sm font-medium text-blue-400">
 					<ArrowLeft size={16} />
 					Back
 				</a>
 				
 				<!-- Current Notebook Info -->
 				{#if notebook}
-					<div class="mb-4 p-3 bg-gray-100 rounded border border-gray-300">
+					<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
 						<div class="flex items-start justify-between gap-2 mb-2">
-							<h3 class="font-bold text-sm text-gray-900 truncate">{notebook.name}</h3>
+							<h3 class="font-bold text-sm text-white truncate">{notebook.name}</h3>
 							<button
 								onclick={handleTogglePin}
-								class="hover:scale-110 transition p-1 rounded hover:bg-gray-200"
+								class="hover:scale-110 transition p-1 rounded hover:bg-gray-700"
 								title={notebook.is_pinned ? 'Unpin' : 'Pin'}
 							>
-								<Pin size={14} class={notebook.is_pinned ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'} />
+								<Pin size={14} class={notebook.is_pinned ? 'fill-yellow-500 text-yellow-500' : 'text-gray-500'} />
 							</button>
 						</div>
-						<p class="text-xs text-gray-600">{pages.length} {pages.length === 1 ? 'page' : 'pages'}</p>
+						<p class="text-xs text-gray-400">{pages.length} {pages.length === 1 ? 'page' : 'pages'}</p>
 					</div>
 				{/if}
 				
 				<!-- Quick Actions -->
-				<div class="mb-4 pb-3 border-b border-gray-300">
+				<div class="mb-4 pb-3 border-b border-gray-700">
 					<button
 						onclick={() => showAddPage = !showAddPage}
 						class="w-full flex items-center gap-2 p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium"
@@ -475,12 +504,12 @@
 				
 				<!-- Search -->
 				<div class="mb-4 relative">
-					<Search size={14} class="absolute left-2 top-2.5 text-gray-400" />
+					<Search size={14} class="absolute left-2 top-2.5 text-gray-500" />
 					<input
 						type="text"
 						bind:value={searchQuery}
 						placeholder="Search..."
-						class="w-full pl-7 pr-2 py-1.5 bg-gray-100 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+						class="w-full pl-7 pr-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					/>
 				</div>
 				
@@ -494,7 +523,7 @@
 						{#each filteredPages as p}
 							<button
 								onclick={() => selectPage(p)}
-								class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-blue-600 text-white font-semibold' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
+								class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-blue-600 text-white font-semibold' : 'bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200'}`}
 							>
 								<div class="truncate">{p.title}</div>
 							</button>
@@ -502,11 +531,11 @@
 					{:else}
 						{#if pages.filter(p => p.is_pinned).length > 0}
 							<div class="mb-3">
-								<h4 class="text-xs font-bold text-gray-600 mb-2 px-2">Pinned</h4>
+								<h4 class="text-xs font-bold text-gray-400 mb-2 px-2">Pinned</h4>
 								{#each pages.filter(p => p.is_pinned) as p}
 									<button
 										onclick={() => selectPage(p)}
-										class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-yellow-200 font-semibold border border-yellow-400' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
+										class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-yellow-900 text-yellow-200 font-semibold border border-yellow-700' : 'bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200'}`}
 									>
 										<div class="truncate">{p.title}</div>
 									</button>
@@ -517,7 +546,7 @@
 						{#each pages.filter(p => !p.is_pinned) as p}
 							<button
 								onclick={() => selectPage(p)}
-								class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-blue-600 text-white font-semibold' : 'bg-white hover:bg-gray-100 border border-gray-300'}`}
+								class={`w-full text-left p-2 rounded text-xs transition ${selectedPage?.id === p.id ? 'bg-blue-600 text-white font-semibold' : 'bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200'}`}
 							>
 								<div class="truncate">{p.title}</div>
 							</button>
@@ -527,13 +556,13 @@
 			{:else}
 				<!-- Collapsed view - just icons -->
 				<div class="flex flex-col items-center space-y-4">
-					<a href="/myflowbook" class="p-3 hover:bg-purple-700 rounded transition" title="All Notebooks">
+					<a href="/myflowbook" class="p-3 hover:bg-gray-700 rounded transition text-gray-400" title="All Notebooks">
 						<Book size={24} />
 					</a>
-					<button onclick={() => showAddPage = !showAddPage} class="p-3 hover:bg-purple-700 rounded transition" title="New Page">
+					<button onclick={() => showAddPage = !showAddPage} class="p-3 hover:bg-gray-700 rounded transition text-gray-400" title="New Page">
 						<Plus size={24} />
 					</button>
-					<div class="text-center text-xs text-purple-300 mt-4">
+					<div class="text-center text-xs text-gray-500 mt-4">
 						{pages.length}
 					</div>
 				</div>
@@ -542,7 +571,7 @@
 	</div>
 	
 	<!-- Main Content -->
-	<div class="flex-1 bg-gradient-to-b from-gray-50 to-white overflow-auto">
+	<div class="flex-1 bg-gray-950 overflow-auto">
 		<div class="max-w-5xl mx-auto p-6 space-y-6">
 			<!-- Notification -->
 			{#if showNotification}
@@ -555,49 +584,48 @@
 			<div class="flex justify-between items-center">
 				<div class="flex items-center gap-3">
 					{#if notebook}
-						<h1 class="text-xl sm:text-2xl font-bold text-gray-900">{notebook.name}</h1>
+						<h1 class="text-xl sm:text-2xl font-bold text-white">{notebook.name}</h1>
 					{/if}
 				</div>
 				<div class="flex flex-wrap gap-2 items-center">
 					<!-- Export Dropdown -->
-					<div class="relative group">
+					<div class="relative">
+						{#if showExportMenu}
+							<div class="fixed inset-0 z-10" onclick={() => showExportMenu = false}></div>
+						{/if}
 						<button
-							class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-flex items-center gap-2 font-medium"
+							onclick={() => showExportMenu = !showExportMenu}
+							class="bg-gray-800 border border-gray-700 text-gray-200 px-3 py-2 rounded-lg hover:bg-gray-700 hover:border-gray-600 transition inline-flex items-center gap-1.5 text-sm font-medium"
 						>
-							<Download size={18} />
+							<Download size={15} />
 							<span class="hidden sm:inline">Export</span>
-							<span>▼</span>
+							<ChevronDown size={13} class="text-gray-500 {showExportMenu ? 'rotate-180' : ''} transition-transform" />
 						</button>
-						<div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl hidden group-hover:block z-10 border border-gray-200 overflow-hidden">
-							<button
-								onclick={exportToPDF}
-								class="w-full text-left px-4 py-3 hover:bg-red-50 text-gray-900 flex items-center gap-2 transition border-b border-gray-100 font-semibold"
-							>
-								<Download size={16} class="text-red-600" />
-								Export as PDF
-							</button>
-							<button
-								onclick={exportToMarkdown}
-								class="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-900 flex items-center gap-2 transition border-b border-gray-100"
-							>
-								<Download size={16} />
-								Export as Markdown
-							</button>
-							<button
-								onclick={exportToText}
-								class="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-900 flex items-center gap-2 transition border-b border-gray-100"
-							>
-								<Download size={16} />
-								Export as Text
-							</button>
-							<button
-								onclick={exportToCSV}
-								class="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-900 flex items-center gap-2 transition"
-							>
-								<Download size={16} />
-								Export as CSV
-							</button>
-						</div>
+						{#if showExportMenu}
+							<div class="absolute right-0 mt-1.5 w-52 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-20 overflow-hidden py-1">
+								<p class="px-3 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Whole Notebook</p>
+								<button onclick={exportToPDF} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
+									<span class="w-5 h-5 rounded bg-red-900 text-red-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">P</span>
+									Export as PDF
+								</button>
+								<button onclick={exportToMarkdown} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
+									<span class="w-5 h-5 rounded bg-blue-900 text-blue-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">#</span>
+									Export as Markdown
+								</button>
+								<button onclick={exportToText} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
+									<span class="w-5 h-5 rounded bg-gray-700 text-gray-300 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">T</span>
+									Export as Text
+								</button>
+								<button onclick={exportToCSV} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
+									<span class="w-5 h-5 rounded bg-emerald-900 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">,</span>
+									Export as CSV
+								</button>
+								<button onclick={exportToJSON} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
+									<span class="w-5 h-5 rounded bg-yellow-900 text-yellow-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">&#123;&#125;</span>
+									Export as JSON
+								</button>
+							</div>
+						{/if}
 					</div>
 					<button
 						onclick={() => showAddPage = !showAddPage}
@@ -610,20 +638,20 @@
 			</div>
 	
 			<!-- Search Bar -->
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex items-center gap-2 hover:shadow-md transition">
-				<Search size={18} class="text-gray-400 ml-3" />
+			<div class="bg-gray-900 rounded-lg border border-gray-800 p-1 flex items-center gap-2 transition">
+				<Search size={18} class="text-gray-500 ml-3" />
 				<input
 					type="text"
 					bind:value={searchQuery}
 					placeholder="Search pages by title or content..."
 					id={pageSearchInputId}
-					class="flex-1 px-3 py-3 bg-white border-none focus:outline-none text-gray-900 placeholder-gray-400"
+					class="flex-1 px-3 py-3 bg-gray-900 border-none focus:outline-none text-white placeholder-gray-500"
 					onkeydown={(e) => e.key === 'Enter' && handleSearch()}
 				/>
 				{#if searchQuery}
 					<button
 						onclick={() => { searchQuery = ''; searchResults = []; isSearching = false; }}
-						class="mr-3 p-2 hover:bg-gray-100 rounded-lg transition text-gray-400"
+						class="mr-3 p-2 hover:bg-gray-800 rounded-lg transition text-gray-400"
 						title="Clear search"
 					>
 						<X size={18} />
@@ -631,63 +659,7 @@
 				{/if}
 			</div>
 	
-			<!-- Add Page Form -->
-			{#if showAddPage}
-				<div class="bg-white rounded-lg shadow-lg border border-purple-100 p-6 animate-scale-in">
-					<h2 class="text-xl font-bold text-gray-900 mb-4">Create New Page</h2>
-					<form onsubmit={(e) => { e.preventDefault(); handleAddPage(); }} class="space-y-4">
-						<div>
-							<label for={addPageTitleId} class="block text-sm font-semibold text-gray-700 mb-2">Page Title</label>
-							<input
-								type="text"
-								bind:value={newPage.title}
-								required
-								placeholder="e.g., Meeting Notes, Research, Ideas"
-								id={addPageTitleId}
-								class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-							/>
-						</div>
-						
-						<div>
-							<label for={addPageContentId} class="block text-sm font-semibold text-gray-700 mb-2">Content</label>
-							<textarea
-								bind:value={newPage.content}
-								rows="6"
-								placeholder="Start writing... Supports markdown: **bold**, *italic*, `code`, # headings"
-								id={addPageContentId}
-								class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition font-mono text-sm"
-							></textarea>
-						</div>
-						
-						<div>
-							<label for={addPageTagsId} class="block text-sm font-semibold text-gray-700 mb-2">Tags (comma-separated, optional)</label>
-							<input
-								type="text"
-								bind:value={newPage.tags}
-								placeholder="e.g., important, work, research"
-								id={addPageTagsId}
-								class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-							/>
-						</div>
-						
-						<div class="flex gap-2 pt-2">
-							<button
-								type="submit"
-								class="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-lg hover:shadow-md transition font-medium"
-							>
-								Create Page
-							</button>
-							<button
-								type="button"
-								onclick={() => { showAddPage = false; newPage = { title: '', content: '', tags: '' }; }}
-								class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
-							>
-								Cancel
-							</button>
-						</div>
-					</form>
-				</div>
-			{/if}
+			<!-- search bar spacer only -->
 	
 			{#if loading}
 				<div class="py-16 text-center">
@@ -716,28 +688,45 @@
 					<p class="text-gray-600 text-lg">Select a page from the sidebar to start editing</p>
 					</div>
 				{:else}
-					<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+					<div class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
 						<!-- Page Header -->
-						<div class="border-b border-gray-200 p-6 space-y-4 bg-gray-50">
+						<div class="border-b border-gray-800 p-6 space-y-4 bg-gray-900">
 							<div class="flex justify-between items-start gap-3 flex-wrap">
 								<div class="flex-1">
-									<h2 class="text-3xl font-bold text-gray-900 break-words">{selectedPage.title}</h2>
-									<p class="text-sm text-gray-600 mt-2">
+									<h2 class="text-3xl font-bold text-white break-words">{selectedPage.title}</h2>
+									<p class="text-sm text-gray-400 mt-2">
 										Created: {formatDateOnly(selectedPage.created_at)} • Updated: {formatDateOnly(selectedPage.updated_at)}
 									</p>
 								</div>
 								<div class="flex flex-wrap gap-2">
 									<button
 										onclick={copyPageContent}
-										class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
+										class="bg-blue-900 text-blue-300 hover:bg-blue-800 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
 										title="Copy content to clipboard"
 									>
 										<Copy size={16} />
 										<span class="hidden sm:inline">Copy</span>
 									</button>
+									<!-- Per-page export -->
+									<button
+										onclick={() => exportCurrentPage('md')}
+										class="bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-lg transition inline-flex items-center gap-1.5 font-medium text-sm"
+										title="Export this page as Markdown"
+									>
+										<FileDown size={14} />
+										<span class="text-[11px] font-mono">.md</span>
+									</button>
+									<button
+										onclick={() => exportCurrentPage('txt')}
+										class="bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-lg transition inline-flex items-center gap-1.5 font-medium text-sm"
+										title="Export this page as plain text"
+									>
+										<FileDown size={14} />
+										<span class="text-[11px] font-mono">.txt</span>
+									</button>
 									<button
 										onclick={duplicatePage}
-										class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
+										class="bg-indigo-900 text-indigo-300 hover:bg-indigo-800 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
 										title="Duplicate this page"
 									>
 										<Copy size={16} />
@@ -745,7 +734,7 @@
 									</button>
 									<button
 										onclick={() => isEditMode = !isEditMode}
-										class={`px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm ${isEditMode ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
+										class={`px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm ${isEditMode ? 'bg-purple-900 text-purple-300 hover:bg-purple-800' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
 									>
 										{#if isEditMode}
 											<Eye size={16} />
@@ -757,7 +746,7 @@
 									</button>
 									<button
 										onclick={() => selectedPage && handleDeletePage(selectedPage.id)}
-										class="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
+										class="bg-red-950 text-red-400 hover:bg-red-900 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
 									>
 										<Trash2 size={16} />
 										<span class="hidden sm:inline">Delete</span>
@@ -768,7 +757,7 @@
 							{#if selectedPage.tags}
 								<div class="flex flex-wrap gap-2 pt-2">
 									{#each selectedPage.tags.split(',').filter(t => t.trim()) as tag}
-										<span class="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">{tag.trim()}</span>
+										<span class="text-xs bg-purple-950 text-purple-300 px-3 py-1 rounded-full font-medium">{tag.trim()}</span>
 									{/each}
 								</div>
 							{/if}
@@ -778,31 +767,31 @@
 						<div class="p-6">
 							{#if isEditMode}
 								<!-- Toolbar -->
-								<div class="mb-4 flex flex-wrap gap-2 border-b pb-4">
+								<div class="mb-4 flex flex-wrap gap-2 border-b border-gray-700 pb-4">
 									<button
 										onclick={() => formatText('bold')}
-										class="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg transition font-semibold text-sm"
+										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-semibold text-sm"
 										title="Bold (select text)"
 									>
 										<strong>B</strong>
 									</button>
 									<button
 										onclick={() => formatText('italic')}
-										class="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg transition font-semibold italic text-sm"
+										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-semibold italic text-sm"
 										title="Italic (select text)"
 									>
 										<em>I</em>
 									</button>
 									<button
 										onclick={() => formatText('code')}
-										class="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg transition font-mono text-sm"
+										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-mono text-sm"
 										title="Code (select text)"
 									>
 										&lt;/&gt;
 									</button>
 									<button
 										onclick={() => formatText('heading')}
-										class="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg transition font-bold text-sm"
+										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-bold text-sm"
 										title="Heading (select text)"
 									>
 										H1
@@ -821,21 +810,21 @@
 								<textarea
 									bind:value={editingContent}
 									rows="20"
-									class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm bg-white"
+									class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
 									placeholder="Write your content here... (Supports markdown)"
 								></textarea>
 								
-							<div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-								<p class="text-sm text-blue-900 flex items-center gap-2">
-									<Lightbulb size={16} class="text-blue-600" /> <strong>Tip:</strong> Use <code class="bg-blue-100 px-1 rounded">**text**</code> for bold,
-										<code class="bg-blue-100 px-1 rounded">*text*</code> for italic, 
-										<code class="bg-blue-100 px-1 rounded">`code`</code> for inline code, 
-										and <code class="bg-blue-100 px-1 rounded"># Heading</code> for headings
+								<div class="mt-4 p-4 bg-blue-950 border border-blue-900 rounded-lg">
+									<p class="text-sm text-blue-300 flex items-center gap-2">
+										<Lightbulb size={16} class="text-blue-400" /> <strong>Tip:</strong> Use <code class="bg-blue-900 px-1 rounded">**text**</code> for bold,
+											<code class="bg-blue-900 px-1 rounded">*text*</code> for italic, 
+											<code class="bg-blue-900 px-1 rounded">`code`</code> for inline code, 
+											and <code class="bg-blue-900 px-1 rounded"># Heading</code> for headings
 									</p>
 								</div>
 							{:else}
 								<!-- Preview -->
-								<div class="prose prose-sm max-w-none text-gray-800 leading-relaxed">
+									<div class="prose prose-invert prose-sm max-w-none text-gray-200 leading-relaxed">
 									{@html renderMarkdown(selectedPage.content)}
 								</div>
 							{/if}
@@ -846,6 +835,131 @@
 		</div>
 	</div>
 </div>
+
+<!-- ── New Page Modal ── -->
+{#if showAddPage}
+	<div
+		class="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center md:p-6"
+		onclick={(e) => { if (e.target === e.currentTarget) { showAddPage = false; newPage = { title: '', content: '', tags: '' }; } }}
+	>
+		<div class="bg-gray-900 border border-gray-800 rounded-t-2xl md:rounded-2xl shadow-2xl w-full md:max-w-2xl flex flex-col max-h-[92vh] md:max-h-[85vh]">
+
+			<!-- Modal header -->
+			<div class="flex items-center justify-between px-5 py-4 border-b border-gray-800 flex-shrink-0">
+				<div>
+					<h2 class="text-sm font-bold text-white">New Page</h2>
+					{#if notebook}<p class="text-[11px] text-gray-500 mt-0.5">in {notebook.name}</p>{/if}
+				</div>
+				<button
+					onclick={() => { showAddPage = false; newPage = { title: '', content: '', tags: '' }; }}
+					class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+				><X size={16} /></button>
+			</div>
+
+			<!-- Scrollable body -->
+			<div class="flex-1 overflow-y-auto">
+				<form id="new-page-form" onsubmit={(e) => { e.preventDefault(); handleAddPage(); }} class="p-5 space-y-4">
+
+					<!-- Quick templates -->
+					<div>
+						<p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Start from a template</p>
+						<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+							{#each [
+								{ label: 'Blank page', icon: '📄', title: '', content: '' },
+								{ label: 'Meeting notes', icon: '🗓️', title: 'Meeting Notes', content: '## Attendees\n\n## Agenda\n\n## Action Items\n' },
+								{ label: 'Daily log', icon: '📝', title: 'Daily Log', content: '## What I did\n\n## Blockers\n\n## Tomorrow\n' },
+								{ label: 'Code snippet', icon: '💻', title: 'Code Snippet', content: '## Description\n\n```\n// your code here\n```\n' },
+							] as tpl}
+								<button
+									type="button"
+									onclick={() => { newPage.title = tpl.title; newPage.content = tpl.content; }}
+									class="flex items-center gap-2 h-9 px-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition"
+								>
+									<span>{tpl.icon}</span><span class="truncate">{tpl.label}</span>
+								</button>
+							{/each}
+						</div>
+					</div>
+
+					<div class="border-t border-gray-800"></div>
+
+					<!-- Title -->
+					<div>
+						<label for={addPageTitleId} class="block text-xs font-medium text-gray-400 mb-1.5">Title <span class="text-red-500">*</span></label>
+						<input
+							type="text"
+							bind:value={newPage.title}
+							required
+							placeholder="Give this page a title…"
+							id={addPageTitleId}
+							class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+						/>
+					</div>
+
+					<!-- Content -->
+					<div>
+						<div class="flex items-center justify-between mb-1.5">
+							<label for={addPageContentId} class="text-xs font-medium text-gray-400">Content</label>
+							<span class="text-[10px] text-gray-600">Supports **bold**, *italic*, `code`, # Heading</span>
+						</div>
+						<!-- Mini formatting toolbar -->
+						<div class="flex gap-1 mb-1.5">
+							{#each [
+								{ label: 'B', title: 'Bold', wrap: '**', wrap2: '**' },
+								{ label: 'I', title: 'Italic', wrap: '*', wrap2: '*' },
+								{ label: '`', title: 'Code', wrap: '`', wrap2: '`' },
+								{ label: 'H1', title: 'Heading', wrap: '# ', wrap2: '' },
+							] as fmt}
+								<button
+									type="button"
+									title={fmt.title}
+									onclick={() => { newPage.content += `\n${fmt.wrap}text${fmt.wrap2}`; }}
+									class="h-7 px-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs text-gray-400 hover:text-white font-mono transition"
+								>{fmt.label}</button>
+							{/each}
+						</div>
+						<textarea
+							bind:value={newPage.content}
+							rows="8"
+							placeholder="Start writing… markdown is supported"
+							id={addPageContentId}
+							class="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-600 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-500 transition resize-y min-h-[160px]"
+						></textarea>
+					</div>
+
+					<!-- Tags -->
+					<div>
+						<label for={addPageTagsId} class="block text-xs font-medium text-gray-400 mb-1.5">
+							<Tag size={11} class="inline mr-1" />Tags <span class="text-gray-600 font-normal">(comma separated, optional)</span>
+						</label>
+						<input
+							type="text"
+							bind:value={newPage.tags}
+							placeholder="e.g. important, work, research"
+							id={addPageTagsId}
+							class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+						/>
+					</div>
+
+				</form>
+			</div>
+
+			<!-- Modal footer -->
+			<div class="flex gap-2 px-5 py-4 border-t border-gray-800 flex-shrink-0">
+				<button
+					type="submit"
+					form="new-page-form"
+					class="flex-1 h-10 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition"
+				><Plus size={15} /> Create Page</button>
+				<button
+					type="button"
+					onclick={() => { showAddPage = false; newPage = { title: '', content: '', tags: '' }; }}
+					class="flex-1 h-10 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition"
+				>Cancel</button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	@keyframes fade-in {
@@ -889,7 +1003,7 @@
 
 	/* Prose styling for markdown preview */
 	:global(.prose) {
-		color: #374151;
+		color: #e5e7eb;
 	}
 
 	:global(.prose strong) {
@@ -922,7 +1036,8 @@
 	}
 
 	:global(.prose code) {
-		background-color: #f3f4f6;
+		background-color: #374151;
+		color: #d1d5db;
 		padding: 0.375rem 0.375rem;
 		border-radius: 0.25rem;
 		font-family: monospace;

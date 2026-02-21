@@ -8,6 +8,13 @@
 	let { children } = $props();
 	let isKioskMode = $state(false);
 	let idleTimer: number | null = null;
+	let now = $state(new Date());
+	let clockTick: ReturnType<typeof setInterval>;
+
+	// Format helpers
+	const dateShort  = $derived(now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }));           // e.g. "Thu 20"
+	const dateMedium = $derived(now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })); // e.g. "Thu, Feb 20"
+	const dateLong   = $derived(now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })); // e.g. "Thu, Feb 20, 2026"
 
 	const navLinks = [
 		{ href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -43,6 +50,9 @@
 		// Initialize WebSocket connection with user_id from JWT so broadcasts are routed correctly
 		const userId = getUserIdFromToken();
 		wsService.connect(userId);
+
+		// Keep date fresh — update every 60 s
+		clockTick = setInterval(() => { now = new Date(); }, 60_000);
 
 		// Check for kiosk mode query parameter or localStorage
 		const urlParams = new URLSearchParams(window.location.search);
@@ -83,6 +93,7 @@
 
 		return () => {
 			wsService.disconnect();
+			clearInterval(clockTick);
 			window.removeEventListener('keydown', handleKeyDown);
 			window.removeEventListener('popstate', handlePopState);
 			window.removeEventListener('mousedown', resetIdleTimer);
@@ -154,13 +165,13 @@
 			<div class="app-shell">
 				<div class="flex items-center justify-between h-12">
 					<a href="/" class="flex items-center py-1 -ml-1 px-1.5 rounded-lg hover:bg-gray-800 transition-colors touch-manipulation">
-						<img src="/tonish-logo.svg" alt="Tonish" class="h-7 w-auto" />
+						<img src="/tonish-logo.svg" alt="Tonish" class="h-7 w-auto brightness-0 invert" />
 					</a>
 					<div class="hidden md:flex items-center space-x-4">
 						{#each navLinks as link}
 							<a
 								href={link.href}
-								class={`touch-target inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition touch-feedback ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/')
+						class={`touch-target inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition touch-feedback ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href + '/') && link.href !== '/')
 									? 'bg-blue-900 text-blue-300'
 									: 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}
 							>
@@ -168,6 +179,20 @@
 								<span>{link.label}</span>
 							</a>
 						{/each}
+					</div>
+
+					<!-- Current date — compact pill, responsive text -->
+					<div class="flex items-center ml-2">
+						<span class="inline-flex items-center rounded-full bg-gray-800 border border-gray-700
+							text-gray-300 font-medium leading-none whitespace-nowrap px-2 py-1 text-[10px]
+							sm:px-2.5 sm:text-xs">
+							<!-- Mobile: "Thu 20" -->
+							<span class="sm:hidden">{dateShort}</span>
+							<!-- sm–lg: "Thu, Feb 20" -->
+							<span class="hidden sm:inline lg:hidden">{dateMedium}</span>
+							<!-- lg+: "Thu, Feb 20, 2026" -->
+							<span class="hidden lg:inline">{dateLong}</span>
+						</span>
 					</div>
 
 				</div>
@@ -185,7 +210,7 @@
 				{#each navLinks as link}
 					<a
 						href={link.href}
-						class={`touch-target-large flex flex-col items-center justify-center text-xs font-medium gap-0.5 px-2 touch-feedback no-select ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href) && link.href !== '/')
+					class={`touch-target-large flex flex-col items-center justify-center text-xs font-medium gap-0.5 px-2 touch-feedback no-select ${$page.url.pathname === link.href || ($page.url.pathname.startsWith(link.href + '/') && link.href !== '/')
 							? 'text-blue-400'
 							: 'text-gray-400'}`}
 					>

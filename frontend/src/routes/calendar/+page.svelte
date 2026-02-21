@@ -34,6 +34,8 @@
 		task_type: string;
 	};
 
+	type RecurringType = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
 	let tasks = $state<Task[]>([]);
 	let loading = $state(true);
 	let currentMonth = $state(new Date().getMonth());
@@ -41,6 +43,9 @@
 	let selectedDate = $state<number | null>(null);
 	let showAddTask = $state(false);
 	let editingTask = $state<Task | null>(null);
+	let recurring = $state(false);
+	let recurringType = $state<RecurringType>('weekly');
+	let recurringCount = $state(4);
 	let newTask = $state<NewTask>({
 		title: '',
 		description: '',
@@ -165,33 +170,55 @@
 			quadrant: '',
 			task_type: 'kanban'
 		};
+		recurring = false;
+		recurringType = 'weekly';
+		recurringCount = 4;
+	}
+
+	function computeRecurringDates(baseDateStr: string, type: RecurringType, count: number): string[] {
+		const dates: string[] = [];
+		const base = new Date(baseDateStr + 'T00:00:00Z');
+		for (let i = 0; i < count; i++) {
+			const d = new Date(base);
+			if (type === 'daily')   d.setUTCDate(d.getUTCDate() + i);
+			else if (type === 'weekly')  d.setUTCDate(d.getUTCDate() + i * 7);
+			else if (type === 'monthly') d.setUTCMonth(d.getUTCMonth() + i);
+			else if (type === 'yearly')  d.setUTCFullYear(d.getUTCFullYear() + i);
+			dates.push(d.toISOString());
+		}
+		return dates;
 	}
 
 	async function handleAddTask() {
 		if (!newTask.title.trim()) return;
 		
 		try {
-			// Convert date string to ISO 8601 format if present
-			let formattedDueDate = undefined;
-			if (newTask.due_date && newTask.due_date.trim() !== '') {
-				// Convert YYYY-MM-DD to ISO timestamp at midnight UTC
-				formattedDueDate = new Date(newTask.due_date + 'T00:00:00Z').toISOString();
+			let dueDates: (string | undefined)[];
+
+			if (recurring && newTask.due_date && newTask.due_date.trim() !== '') {
+				dueDates = computeRecurringDates(newTask.due_date, recurringType, recurringCount);
+			} else {
+				const formattedDueDate = newTask.due_date && newTask.due_date.trim() !== ''
+					? new Date(newTask.due_date + 'T00:00:00Z').toISOString()
+					: undefined;
+				dueDates = [formattedDueDate];
 			}
-			
-			const taskData = {
-				title: newTask.title,
-				description: newTask.description,
-				priority: newTask.priority,
-				status: newTask.status,
-				tags: newTask.tags,
-				due_date: formattedDueDate,
-				is_quick_task: newTask.is_quick_task,
-				quadrant: newTask.quadrant,
-				task_type: newTask.task_type
-			};
-			
-			console.log('Creating task with data:', taskData);
-			await taskAPI.create(taskData);
+
+			for (const dueDate of dueDates) {
+				const taskData = {
+					title: newTask.title,
+					description: newTask.description,
+					priority: newTask.priority,
+					status: newTask.status,
+					tags: newTask.tags,
+					due_date: dueDate,
+					is_quick_task: newTask.is_quick_task,
+					quadrant: newTask.quadrant,
+					task_type: newTask.task_type
+				};
+				await taskAPI.create(taskData);
+			}
+
 			await loadTasks();
 			closeAddTaskModal();
 		} catch (error) {
@@ -610,10 +637,48 @@
 							class="w-full h-10 px-3 bg-gray-800 border border-gray-700 text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
 					</div>
 
+					<!-- Recurring -->
+					<div class="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2.5">
+						<label class="flex items-center gap-2.5 cursor-pointer select-none">
+							<div class="relative">
+								<input type="checkbox" bind:checked={recurring} class="sr-only peer" />
+								<div class="w-9 h-5 rounded-full transition-colors
+									{recurring ? 'bg-blue-600' : 'bg-gray-600'}"></div>
+								<div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform
+									{recurring ? 'translate-x-4' : 'translate-x-0'}"></div>
+							</div>
+							<span class="text-xs font-medium text-gray-300">Recurring task</span>
+						</label>
+
+						{#if recurring}
+							<div class="grid grid-cols-2 gap-2">
+								<div>
+									<label for="recurring-type" class="block text-[10px] font-medium text-gray-500 mb-1">Repeat</label>
+									<select id="recurring-type" bind:value={recurringType}
+										class="w-full h-9 px-2 bg-gray-700 border border-gray-600 text-white rounded-md text-xs focus:ring-2 focus:ring-blue-500">
+										<option value="daily">Daily</option>
+										<option value="weekly">Weekly</option>
+										<option value="monthly">Monthly</option>
+										<option value="yearly">Yearly</option>
+									</select>
+								</div>
+								<div>
+									<label for="recurring-count" class="block text-[10px] font-medium text-gray-500 mb-1">Occurrences</label>
+									<input id="recurring-count" type="number" bind:value={recurringCount}
+										min="2" max="52"
+										class="w-full h-9 px-2 bg-gray-700 border border-gray-600 text-white rounded-md text-xs focus:ring-2 focus:ring-blue-500" />
+								</div>
+							</div>
+							<p class="text-[10px] text-blue-400">
+								Will create {recurringCount} tasks starting from the due date above.
+							</p>
+						{/if}
+					</div>
+
 					<div class="flex gap-2 pt-1">
 						<button onclick={handleAddTask}
 							class="flex-1 h-10 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 active:scale-95 transition touch-manipulation">
-							Create Task
+							{recurring ? `Create ${recurringCount} Tasks` : 'Create Task'}
 						</button>
 						<button onclick={closeAddTaskModal}
 							class="flex-1 h-10 bg-gray-700 text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-600 touch-manipulation">
