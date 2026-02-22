@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { taskAPI } from '$lib/api';
-	import { Calendar, RotateCcw, Trash2, Archive } from 'lucide-svelte';
+	import { Calendar, CalendarDays, RotateCcw, Trash2, Archive } from 'lucide-svelte';
 
 	interface Task {
 		id: number;
 		title: string;
 		description: string;
-		task_type: 'kanban' | 'matrix';
+		task_type: 'kanban' | 'matrix' | 'calendar';
 		status: string;
 		quadrant: string;
 		priority: string;
+		due_date: string | null;
 		is_archived: boolean;
 		completed_at: string | null;
 		deleted_at: string | null;
@@ -20,7 +21,7 @@
 
 	let archivedTasks = $state<Task[]>([]);
 	let loading = $state(true);
-	let filterType = $state<'all' | 'kanban' | 'matrix'>('all');
+	let filterType = $state<'all' | 'kanban' | 'matrix' | 'calendar'>('all');
 	let sortBy = $state<'date' | 'type'>('date');
 	let selectedTaskIds = $state<Set<number>>(new Set());
 	let isSelectAllChecked = $state(false);
@@ -157,6 +158,7 @@
 
 	const kanbanTasks = $derived(filteredTasks().filter(t => t.task_type === 'kanban'));
 	const matrixTasks = $derived(filteredTasks().filter(t => t.task_type === 'matrix'));
+	const calendarTasks = $derived(filteredTasks().filter(t => t.task_type === 'calendar'));
 </script>
 
 <svelte:head>
@@ -185,6 +187,13 @@
 						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition {filterType === 'matrix' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
 					>
 						Matrix ({matrixTasks.length})
+					</button>
+					<button
+						onclick={() => filterType = 'calendar'}
+						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition flex items-center gap-1.5 {filterType === 'calendar' ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
+					>
+						<CalendarDays size={14} />
+						Calendar ({archivedTasks.filter(t => t.task_type === 'calendar').length})
 					</button>
 				</div>
 				
@@ -253,8 +262,7 @@
 									</th>
 									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Date</th>
 									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Kanban Tasks</th>
-									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Matrix</th>
-									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Matrix</th>							<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Calendar</th>									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Status</th>
 									<th class="px-4 py-3 text-right text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
 								</tr>
 							</thead>
@@ -312,8 +320,32 @@
 										{:else}
 											<span class="text-gray-400 text-sm">—</span>
 										{/if}
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
+									</td>								<td class="px-4 py-3">
+									{#if task.task_type === 'calendar'}
+										<div class="max-w-xs">
+											<div class="font-medium text-gray-200 text-sm">{task.title}</div>
+											{#if task.description}
+												<div class="text-xs text-gray-400 truncate">{task.description}</div>
+											{/if}
+											<div class="flex gap-1.5 mt-1 flex-wrap">
+												<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-cyan-950 text-cyan-300">
+													{task.status}
+												</span>
+												<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-300">
+													{task.priority}
+												</span>
+												{#if task.due_date}
+													<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-blue-950 text-blue-300">
+														<CalendarDays size={9} />
+														{new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+													</span>
+												{/if}
+											</div>
+										</div>
+									{:else}
+										<span class="text-gray-500 text-sm">—</span>
+									{/if}
+								</td>									<td class="px-6 py-4 whitespace-nowrap">
 										{#if task.deleted_at}
 											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-950 text-red-300">
 												Deleted
@@ -369,7 +401,9 @@
 								<div class="flex-1">
 									<div class="flex items-start justify-between gap-3">
 										<div>
-											<p class="text-xs uppercase tracking-wide text-gray-400">{task.task_type === 'matrix' ? 'Matrix task' : 'Kanban task'}</p>
+											<p class="text-xs uppercase tracking-wide text-gray-400">
+							{task.task_type === 'matrix' ? 'Matrix task' : task.task_type === 'calendar' ? 'Calendar task' : 'Kanban task'}
+						</p>
 											<h3 class="text-lg font-semibold text-gray-200">{task.title}</h3>
 										</div>
 										<div class="text-right text-xs text-gray-400 flex flex-col items-end">
@@ -387,8 +421,11 @@
 							{#if task.task_type === 'matrix'}
 								<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-950 text-green-300">
 									{getQuadrantLabel(task.quadrant)}
-								</span>
-							{/if}
+								</span>						{:else if task.task_type === 'calendar' && task.due_date}
+							<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-950 text-cyan-300">
+								<CalendarDays size={12} />
+								Due: {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+							</span>							{/if}
 							<div class="flex flex-wrap gap-2">
 								{#if task.deleted_at}
 									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-950 text-red-300">Deleted</span>
@@ -397,8 +434,8 @@
 								{:else if task.completed_at}
 									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-950 text-indigo-300">Completed</span>
 								{/if}
-								{#if task.task_type === 'kanban'}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-950 text-blue-300">{task.status}</span>
+							{#if task.task_type === 'kanban' || task.task_type === 'calendar'}
+								<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {task.task_type === 'calendar' ? 'bg-cyan-950 text-cyan-300' : 'bg-blue-950 text-blue-300'}">{task.status}</span>
 								{/if}
 							</div>
 							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
