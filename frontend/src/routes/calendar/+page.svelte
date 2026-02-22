@@ -55,7 +55,7 @@
 		due_date: '',
 		is_quick_task: false,
 		quadrant: '',
-		task_type: 'kanban'
+		task_type: 'calendar'
 	});
 
 	const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -168,7 +168,7 @@
 			due_date: '',
 			is_quick_task: false,
 			quadrant: '',
-			task_type: 'kanban'
+			task_type: 'calendar'
 		};
 		recurring = false;
 		recurringType = 'weekly';
@@ -256,7 +256,7 @@
 				due_date: formattedDueDate,
 				is_quick_task: editingTask.is_quick_task || false,
 				quadrant: editingTask.quadrant || '',
-				task_type: editingTask.task_type || 'kanban'
+				task_type: editingTask.task_type || 'calendar'
 			};
 			
 			console.log('Updating task with data:', taskData);
@@ -284,7 +284,8 @@
 	async function loadTasks() {
 		try {
 			const tasksData = await taskAPI.getAll();
-			tasks = tasksData.filter((task: Task) => !task.is_archived && task.due_date);
+			// Show only calendar-typed tasks (tasks created from the calendar view)
+			tasks = tasksData.filter((task: Task) => !task.is_archived && task.due_date && task.task_type === 'calendar');
 		} catch (error) {
 			console.error('Failed to load tasks:', error);
 		}

@@ -7,7 +7,7 @@
 
 	type TaskStatus = 'todo' | 'in-progress' | 'done';
 	type TaskPriority = 'low' | 'medium' | 'high';
-	type TaskType = 'kanban' | 'matrix';
+	type TaskType = 'kanban' | 'matrix' | 'calendar';
 	type MatrixQuadrant = 'urgent-important' | 'not-urgent-important' | 'urgent-not-important' | 'not-urgent-not-important';
 
 	type Task = {
@@ -89,6 +89,16 @@
 			goto('/login');
 			return;
 		}
+
+		// Set initial view from URL query param (e.g. ?view=matrix)
+		if (typeof window !== 'undefined') {
+			const params = new URLSearchParams(window.location.search);
+			const viewParam = params.get('view');
+			if (viewParam === 'matrix' || viewParam === 'kanban') {
+				activeView = viewParam;
+			}
+		}
+
 		await loadTasks();
 
 		// Set up WebSocket listeners for real-time updates
@@ -294,6 +304,7 @@
 	const kanbanTasks = $derived(
 		tasks.filter((t) => {
 			if (t.task_type === 'matrix') return false;
+			if (t.task_type === 'calendar') return false;
 			if (t.task_type === 'kanban') return true;
 			return !t.quadrant || t.quadrant.trim() === '';
 		})

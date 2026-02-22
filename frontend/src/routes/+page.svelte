@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { taskAPI } from '$lib/api';
 	import { wsService } from '$lib/websocket';
-	import { BarChart3, Zap, CheckCircle, Kanban, LayoutGrid, Calendar } from 'lucide-svelte';
+	import { BarChart3, Zap, CheckCircle, Kanban, LayoutGrid, Calendar, AlarmClock, AlertTriangle, Clock } from 'lucide-svelte';
 
 	type TaskStatus = 'todo' | 'in-progress' | 'done';
 	type TaskPriority = 'low' | 'medium' | 'high';
@@ -18,6 +18,7 @@
 		tags?: string | null;
 		is_quick_task?: boolean;
 		quadrant?: string | null;
+		task_type?: string | null;
 	};
 
 	let tasks = $state<Task[]>([]);
@@ -111,7 +112,7 @@
 	const completedTasks = $derived(tasks.filter((task) => task.status === 'done').length);
 
 	// Kanban board task breakdown
-	const kanbanTasks = $derived(tasks.filter((task) => task.task_type === 'kanban' || !task.quadrant));
+	const kanbanTasks = $derived(tasks.filter((task) => (task.task_type === 'kanban' || (!task.task_type && !task.quadrant))));
 	const kanbanTodo = $derived(kanbanTasks.filter((task) => task.status === 'todo').length);
 	const kanbanInProgress = $derived(kanbanTasks.filter((task) => task.status === 'in-progress').length);
 	const kanbanDone = $derived(kanbanTasks.filter((task) => task.status === 'done').length);
@@ -123,15 +124,30 @@
 	const urgentNotImportant = $derived(matrixTasks.filter((task) => task.quadrant === 'urgent-not-important' && task.status !== 'done').length);
 	const notUrgentNotImportant = $derived(matrixTasks.filter((task) => task.quadrant === 'not-urgent-not-important' && task.status !== 'done').length);
 	const matrixCompleted = $derived(matrixTasks.filter((task) => task.status === 'done').length);
+
+	// Calendar task breakdown (tasks created from the Calendar view)
+	const calendarTasks = $derived(tasks.filter((task) => task.task_type === 'calendar'));
+	const calendarOverdue = $derived(calendarTasks.filter((task) => isOverdue(task.due_date, task.status)));
+	const calendarDueToday = $derived(calendarTasks.filter((task) => isToday(task.due_date) && task.status !== 'done'));
+	const calendarUpcoming7 = $derived(calendarTasks.filter((task) => isWithinNextDays(task.due_date, 7) && task.status !== 'done'));
+	const calendarDueIn3 = $derived(calendarTasks.filter((task) => isWithinNextDays(task.due_date, 3) && task.status !== 'done'));
+	const calendarCompleted = $derived(calendarTasks.filter((task) => task.status === 'done').length);
+
+	// Next upcoming calendar task (for repeat reminder)
+	const nextCalendarTask = $derived(
+		[...calendarTasks]
+			.filter((task) => task.due_date && task.status !== 'done')
+			.sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())[0] ?? null
+	);
 </script>
 
 <div class="max-w-[1600px] mx-auto">
-	<!-- Compact 3-Section Layout -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+	<!-- Compact 4-Section Layout -->
+		<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
 			
 			<!-- Section 1: Task Summary (compact list) -->
-			<div class="lg:col-span-1">
-				<div class="bg-gray-900 rounded-lg border border-gray-800 p-2">
+			<div>
+				<div class="bg-gray-900 rounded-lg border border-gray-800 p-2 h-full">
 					<h2 class="text-xs font-bold text-white mb-1.5 flex items-center gap-1.5 px-1">
 						<BarChart3 size={12} class="text-blue-600" />
 						Task Summary
@@ -185,7 +201,7 @@
 			</div>
 
 			<!-- Section 2: Kanban Board Summary -->
-			<div class="lg:col-span-1">
+			<div>
 				<a href="/myflow" class="block bg-gray-900 rounded-lg border border-gray-800 p-2.5 hover:border-gray-700 hover:shadow-md transition-all h-full">
 					<div class="flex items-center justify-between mb-2">
 						<h2 class="text-sm font-bold text-white flex items-center gap-1.5">
@@ -241,8 +257,8 @@
 			</div>
 
 			<!-- Section 3: Eisenhower Matrix -->
-			<div class="lg:col-span-1 sm:col-span-2 lg:col-auto">
-				<a href="/myflow" class="block bg-gray-900 rounded-lg border border-gray-800 p-2.5 hover:border-gray-700 hover:shadow-md transition-all h-full">
+			<div>
+				<a href="/myflow?view=matrix" class="block bg-gray-900 rounded-lg border border-gray-800 p-2.5 hover:border-gray-700 hover:shadow-md transition-all h-full">
 					<div class="flex items-center justify-between mb-2">
 						<h2 class="text-sm font-bold text-white flex items-center gap-1.5">
 							<LayoutGrid size={13} class="text-purple-400" />
@@ -296,5 +312,70 @@
 					{/if}
 				</a>
 			</div>
-	</div>
+
+			<!-- Section 4: Calendar Summary -->
+			<div>
+				<a href="/calendar" class="block bg-gray-900 rounded-lg border border-gray-800 p-2.5 hover:border-gray-700 hover:shadow-md transition-all h-full">
+					<div class="flex items-center justify-between mb-2">
+						<h2 class="text-sm font-bold text-white flex items-center gap-1.5">
+							<Calendar size={13} class="text-cyan-400" />
+							Calendar
+						</h2>
+						<span class="text-[10px] text-gray-400">{calendarTasks.length} tasks</span>
+					</div>
+
+					<!-- Overdue Alert -->
+					{#if calendarOverdue.length > 0}
+						<div class="flex items-center gap-1.5 bg-red-950 border border-red-900 rounded-md px-2 py-1.5 mb-1.5">
+							<AlertTriangle size={11} class="text-red-400 flex-shrink-0" />
+							<span class="text-[10px] font-semibold text-red-300 flex-1">Overdue</span>
+							<span class="text-sm font-bold text-red-400">{calendarOverdue.length}</span>
+						</div>
+					{/if}
+
+					<!-- Due-soon Warning (within 3 days) -->
+					{#if calendarDueIn3.length > 0}
+						<div class="flex items-center gap-1.5 bg-amber-950 border border-amber-900 rounded-md px-2 py-1.5 mb-1.5">
+							<AlarmClock size={11} class="text-amber-400 flex-shrink-0" />
+							<span class="text-[10px] font-semibold text-amber-300 flex-1">Due within 3 days</span>
+							<span class="text-sm font-bold text-amber-400">{calendarDueIn3.length}</span>
+						</div>
+					{/if}
+
+					<!-- Stats row: Today / 7 Days / Done -->
+					<div class="grid grid-cols-3 gap-1.5 mb-2">
+						<div class="bg-cyan-950 rounded-md p-1.5 border border-cyan-900 flex flex-col items-center">
+							<p class="text-lg font-bold text-white leading-none">{calendarDueToday.length}</p>
+							<p class="text-[8px] text-cyan-400 mt-0.5 text-center">Today</p>
+						</div>
+						<div class="bg-blue-950 rounded-md p-1.5 border border-blue-900 flex flex-col items-center">
+							<p class="text-lg font-bold text-white leading-none">{calendarUpcoming7.length}</p>
+							<p class="text-[8px] text-blue-400 mt-0.5 text-center">7 Days</p>
+						</div>
+						<div class="bg-emerald-950 rounded-md p-1.5 border border-emerald-900 flex flex-col items-center">
+							<p class="text-lg font-bold text-white leading-none">{calendarCompleted}</p>
+							<p class="text-[8px] text-emerald-400 mt-0.5 text-center">Done</p>
+						</div>
+					</div>
+
+					<!-- Next upcoming task reminder -->
+					{#if nextCalendarTask}
+						<div class="pt-2 border-t border-gray-800">
+							<div class="flex items-start gap-1.5 bg-gray-800 rounded-md px-2 py-1.5 border border-gray-700">
+								<Clock size={10} class="text-gray-400 mt-0.5 flex-shrink-0" />
+								<div class="flex-1 min-w-0">
+									<p class="text-[9px] text-gray-500 uppercase tracking-wide mb-0.5">Next up</p>
+									<p class="text-[10px] font-semibold text-gray-200 truncate">{nextCalendarTask.title}</p>
+									<p class="text-[9px] text-cyan-400 mt-0.5">{new Date(nextCalendarTask.due_date!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+								</div>
+							</div>
+						</div>
+					{:else if calendarTasks.length === 0}
+						<div class="pt-2 border-t border-gray-800 text-center">
+							<p class="text-[10px] text-gray-600">No calendar tasks yet</p>
+						</div>
+					{/if}
+				</a>
+			</div>
+		</div>
 </div>
