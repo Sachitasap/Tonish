@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { taskAPI } from '$lib/api';
-	import { Calendar, CalendarDays, RotateCcw, Trash2, Archive } from 'lucide-svelte';
+	import { Calendar, CalendarDays, RotateCcw, Trash2, Archive, Kanban, LayoutGrid } from 'lucide-svelte';
 
 	interface Task {
 		id: number;
@@ -166,295 +166,243 @@
 </svelte:head>
 
 <div class="max-w-[1600px] mx-auto">
-	<!-- Filters -->
-		<div class="bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4 mb-3">
-			<div class="flex flex-col gap-3 md:flex-row md:items-center">
-				<div class="flex flex-wrap gap-2">
-					<button
-						onclick={() => filterType = 'all'}
-						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition {filterType === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
-					>
-						All ({archivedTasks.length})
-					</button>
-					<button
-						onclick={() => filterType = 'kanban'}
-						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition {filterType === 'kanban' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
-					>
-						Kanban ({kanbanTasks.length})
-					</button>
-					<button
-						onclick={() => filterType = 'matrix'}
-						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition {filterType === 'matrix' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
-					>
-						Matrix ({matrixTasks.length})
-					</button>
-					<button
-						onclick={() => filterType = 'calendar'}
-						class="px-3 py-2 min-h-[44px] rounded-md text-sm font-medium transition flex items-center gap-1.5 {filterType === 'calendar' ? 'bg-cyan-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
-					>
-						<CalendarDays size={14} />
-						Calendar ({archivedTasks.filter(t => t.task_type === 'calendar').length})
-					</button>
-				</div>
-				
-				<div class="flex gap-2 w-full md:w-auto md:ml-auto">
-					<select
-						bind:value={sortBy}
-						class="w-full md:w-auto px-3 py-2 min-h-[44px] bg-gray-800 border border-gray-700 text-white text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-					>
-						<option value="date">Sort by Date</option>
-						<option value="type">Sort by Type</option>
-					</select>
-				</div>
+
+	<!-- Page Header -->
+	<div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+		<div class="flex items-center gap-2">
+			<div class="w-7 h-7 rounded-lg bg-purple-950 border border-purple-800 flex items-center justify-center flex-shrink-0">
+				<Archive size={13} class="text-purple-400" />
+			</div>
+			<div>
+				<h1 class="text-sm font-bold text-white leading-tight">LookBack</h1>
+				<p class="text-[10px] text-gray-500">Archived &amp; completed tasks</p>
 			</div>
 		</div>
-
-		<!-- Bulk Action Bar -->
-		{#if selectedTaskIds.size > 0}
-			<div class="bg-blue-950 border border-blue-800 rounded-lg p-3 mb-3 flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<div class="text-white font-semibold text-sm">
-						{selectedTaskIds.size} item{selectedTaskIds.size > 1 ? 's' : ''} selected
-					</div>
-					<button
-						onclick={clearSelection}
-						class="text-xs text-blue-300 hover:text-blue-200 underline touch-manipulation"
-					>
-						Clear
-					</button>
-				</div>
-				<button
-					onclick={handleBulkDelete}
-					class="min-h-[44px] px-4 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-md font-medium text-sm transition flex items-center gap-2 touch-manipulation"
-				>
-					<Trash2 size={16} />
-					<span>Delete</span>
-				</button>
+		<!-- Quick stats -->
+		<div class="flex items-center gap-1.5">
+			<div class="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-md px-2 py-1">
+				<Kanban size={10} class="text-blue-400" />
+				<span class="text-[10px] text-gray-400">Kanban</span>
+				<span class="text-[10px] font-bold text-white ml-0.5">{kanbanTasks.length}</span>
 			</div>
-		{/if}
+			<div class="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-md px-2 py-1">
+				<LayoutGrid size={10} class="text-green-400" />
+				<span class="text-[10px] text-gray-400">Matrix</span>
+				<span class="text-[10px] font-bold text-white ml-0.5">{matrixTasks.length}</span>
+			</div>
+			<div class="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-md px-2 py-1">
+				<CalendarDays size={10} class="text-cyan-400" />
+				<span class="text-[10px] text-gray-400">Calendar</span>
+				<span class="text-[10px] font-bold text-white ml-0.5">{calendarTasks.length}</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- Filters -->
+	<div class="bg-gray-900 rounded-lg border border-gray-800 p-2 sm:p-2.5 mb-2">
+		<div class="flex flex-wrap items-center gap-1.5">
+			<button
+				onclick={() => filterType = 'all'}
+				class="px-2.5 py-1.5 rounded-md text-xs font-medium transition {filterType === 'all' ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'}"
+			>All ({archivedTasks.length})</button>
+			<button
+				onclick={() => filterType = 'kanban'}
+				class="px-2.5 py-1.5 rounded-md text-xs font-medium transition inline-flex items-center gap-1 {filterType === 'kanban' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'}"
+			><Kanban size={11} />Kanban ({kanbanTasks.length})</button>
+			<button
+				onclick={() => filterType = 'matrix'}
+				class="px-2.5 py-1.5 rounded-md text-xs font-medium transition inline-flex items-center gap-1 {filterType === 'matrix' ? 'bg-green-700 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'}"
+			><LayoutGrid size={11} />Matrix ({matrixTasks.length})</button>
+			<button
+				onclick={() => filterType = 'calendar'}
+				class="px-2.5 py-1.5 rounded-md text-xs font-medium transition inline-flex items-center gap-1 {filterType === 'calendar' ? 'bg-cyan-700 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'}"
+			><CalendarDays size={11} />Calendar ({archivedTasks.filter(t => t.task_type === 'calendar').length})</button>
+			<div class="ml-auto">
+				<select
+					bind:value={sortBy}
+					class="h-7 px-2 bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+				>
+					<option value="date">By Date</option>
+					<option value="type">By Type</option>
+				</select>
+			</div>
+		</div>
+	</div>
+
+	<!-- Bulk Action Bar -->
+	{#if selectedTaskIds.size > 0}
+		<div class="bg-blue-950 border border-blue-800 rounded-lg p-2 mb-2 flex items-center justify-between">
+			<div class="flex items-center gap-2">
+				<span class="text-xs font-semibold text-white">{selectedTaskIds.size} selected</span>
+				<button onclick={clearSelection} class="text-[10px] text-blue-300 hover:text-blue-200 underline">Clear</button>
+			</div>
+			<button
+				onclick={handleBulkDelete}
+				class="h-7 px-3 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium text-xs transition inline-flex items-center gap-1.5"
+			><Trash2 size={12} />Delete</button>
+		</div>
+	{/if}
 
 		<!-- Tasks Table -->
-		{#if loading}
-			<div class="text-center py-12">
-				<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-				<p class="mt-4 text-gray-400 text-sm">Loading archived tasks...</p>
+	{#if loading}
+		<div class="flex items-center justify-center py-16">
+			<div class="flex flex-col items-center gap-3">
+				<div class="w-8 h-8 border-2 border-gray-700 border-t-purple-500 rounded-full animate-spin"></div>
+				<p class="text-xs text-gray-500">Loading archive…</p>
 			</div>
-		{:else if filteredTasks().length === 0}
+		</div>
+	{:else if filteredTasks().length === 0}
 		<div class="bg-gray-900 border border-gray-800 rounded-lg p-10 text-center">
-			<Archive class="mx-auto text-gray-600 mb-3" size={36} />
-			<p class="text-gray-400 text-sm">No archived tasks</p>
+			<Archive class="mx-auto text-gray-700 mb-3" size={28} />
+			<p class="text-xs text-gray-500">No archived tasks{filterType !== 'all' ? ` in ${filterType}` : ''}</p>
 		</div>
 		{:else}
 			<div class="space-y-3">
 				<div class="hidden md:block bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-					<div class="overflow-x-auto">
-						<table class="w-full">
-							<thead class="bg-gray-800 border-b border-gray-700">
-								<tr>
-									<th class="px-4 py-3 text-left w-12">
-										<input
-											type="checkbox"
-											checked={isSelectAllChecked}
-											onchange={toggleSelectAll}
-											class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-											aria-label="Select all tasks"
-										/>
-									</th>
-									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Date</th>
-									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Kanban Tasks</th>
-									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Matrix</th>							<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Calendar</th>									<th class="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Status</th>
-									<th class="px-4 py-3 text-right text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
-								</tr>
-							</thead>
-							<tbody class="divide-y divide-gray-800">
-								{#each filteredTasks() as task}
-									<tr class="hover:bg-gray-800 transition {selectedTaskIds.has(task.id) ? 'bg-blue-950/30' : ''}">
-										<td class="px-4 py-3">
-											<input
-												type="checkbox"
-												checked={selectedTaskIds.has(task.id)}
-												onchange={() => toggleTaskSelection(task.id)}
-												class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-												aria-label="Select task"
-											/>
-										</td>
-										<td class="px-4 py-3 whitespace-nowrap">
-											<div class="flex items-center gap-2">
-												<Calendar size={14} class="text-gray-500" />
-												<span class="text-xs text-gray-200">{formatDate(task.deleted_at || task.completed_at || task.updated_at)}</span>
-											</div>
-										</td>
-										<td class="px-4 py-3">
-											{#if task.task_type === 'kanban'}
-												<div class="max-w-xs">
-													<div class="font-medium text-gray-200 text-sm">{task.title}</div>
-													{#if task.description}
-														<div class="text-xs text-gray-400 truncate">{task.description}</div>
-													{/if}
-													<div class="flex gap-1.5 mt-1">
-															<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-950 text-blue-300">
-																{task.status}
-															</span>
-															<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-300">
-															{task.priority}
-														</span>
-													</div>
-												</div>
-											{:else}
-													<span class="text-gray-500 text-sm">—</span>
-											{/if}
+				<div class="overflow-x-auto">
+					<table class="w-full">
+						<thead class="bg-gray-800/80 border-b border-gray-700">
+							<tr>
+								<th class="px-3 py-2 text-left w-10">
+									<input type="checkbox" checked={isSelectAllChecked} onchange={toggleSelectAll}
+										class="w-3.5 h-3.5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-1 focus:ring-blue-500 cursor-pointer" aria-label="Select all tasks" />
+								</th>
+								<th class="px-3 py-2 text-left text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+								<th class="px-3 py-2 text-left text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Kanban</th>
+								<th class="px-3 py-2 text-left text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Matrix</th>
+								<th class="px-3 py-2 text-left text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Calendar</th>
+								<th class="px-3 py-2 text-left text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+								<th class="px-3 py-2 text-right text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-800/60">
+							{#each filteredTasks() as task}
+								<tr class="hover:bg-gray-800/40 transition {selectedTaskIds.has(task.id) ? 'bg-blue-950/20' : ''}">
+									<td class="px-3 py-2">
+										<input type="checkbox" checked={selectedTaskIds.has(task.id)} onchange={() => toggleTaskSelection(task.id)}
+											class="w-3.5 h-3.5 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-1 focus:ring-blue-500 cursor-pointer" aria-label="Select task" />
 									</td>
-									<td class="px-6 py-4">
+									<td class="px-3 py-2 whitespace-nowrap">
+										<div class="flex items-center gap-1.5">
+											<Calendar size={12} class="text-gray-600" />
+											<span class="text-xs text-gray-300">{formatDate(task.deleted_at || task.completed_at || task.updated_at)}</span>
+										</div>
+									</td>
+									<td class="px-3 py-2">
+										{#if task.task_type === 'kanban'}
+											<div class="max-w-xs">
+												<div class="font-medium text-gray-200 text-xs">{task.title}</div>
+												{#if task.description}<div class="text-[11px] text-gray-500 truncate">{task.description}</div>{/if}
+												<div class="flex gap-1 mt-1">
+													<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-950 text-blue-300">{task.status}</span>
+													<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-gray-800 text-gray-400">{task.priority}</span>
+												</div>
+											</div>
+										{:else}<span class="text-gray-600 text-xs">—</span>{/if}
+									</td>
+									<td class="px-3 py-2">
 										{#if task.task_type === 'matrix'}
 											<div class="max-w-xs">
-													<div class="font-medium text-gray-200">{task.title}</div>
-													{#if task.description}
-														<div class="text-sm text-gray-400 truncate">{task.description}</div>
+												<div class="font-medium text-gray-200 text-xs">{task.title}</div>
+												{#if task.description}<div class="text-[11px] text-gray-500 truncate">{task.description}</div>{/if}
+												<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-green-950 text-green-300 mt-1">{getQuadrantLabel(task.quadrant)}</span>
+											</div>
+										{:else}<span class="text-gray-600 text-xs">—</span>{/if}
+									</td>
+									<td class="px-3 py-2">
+										{#if task.task_type === 'calendar'}
+											<div class="max-w-xs">
+												<div class="font-medium text-gray-200 text-xs">{task.title}</div>
+												{#if task.description}<div class="text-[11px] text-gray-500 truncate">{task.description}</div>{/if}
+												<div class="flex gap-1 mt-1 flex-wrap">
+													<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-cyan-950 text-cyan-300">{task.status}</span>
+													{#if task.due_date}
+														<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-950 text-blue-300">
+															<CalendarDays size={8} />{new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+														</span>
 													{/if}
-													<div class="flex gap-2 mt-1">
-														<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-950 text-green-300">
-														{getQuadrantLabel(task.quadrant)}
-													</span>
 												</div>
 											</div>
-										{:else}
-											<span class="text-gray-400 text-sm">—</span>
-										{/if}
-									</td>								<td class="px-4 py-3">
-									{#if task.task_type === 'calendar'}
-										<div class="max-w-xs">
-											<div class="font-medium text-gray-200 text-sm">{task.title}</div>
-											{#if task.description}
-												<div class="text-xs text-gray-400 truncate">{task.description}</div>
-											{/if}
-											<div class="flex gap-1.5 mt-1 flex-wrap">
-												<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-cyan-950 text-cyan-300">
-													{task.status}
-												</span>
-												<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-gray-800 text-gray-300">
-													{task.priority}
-												</span>
-												{#if task.due_date}
-													<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-blue-950 text-blue-300">
-														<CalendarDays size={9} />
-														{new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-													</span>
-												{/if}
-											</div>
-										</div>
-									{:else}
-										<span class="text-gray-500 text-sm">—</span>
-									{/if}
-								</td>									<td class="px-6 py-4 whitespace-nowrap">
+										{:else}<span class="text-gray-600 text-xs">—</span>{/if}
+									</td>
+									<td class="px-3 py-2 whitespace-nowrap">
 										{#if task.deleted_at}
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-950 text-red-300">
-												Deleted
-											</span>
+											<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-red-950 text-red-300">Deleted</span>
 										{:else if task.is_archived}
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-950 text-yellow-300">
-												Archived
-											</span>
+											<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-yellow-950 text-yellow-300">Archived</span>
 										{:else if task.completed_at}
-											<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-950 text-indigo-300">
-												Completed
-											</span>
+											<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-indigo-950 text-indigo-300">Completed</span>
 										{/if}
 									</td>
-									<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-										<div class="flex gap-2 justify-end">
-											<button
-												onclick={() => handleRestore(task.id)}
-												class="inline-flex items-center gap-1 min-h-[44px] px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 active:bg-green-800 transition touch-manipulation"
-												title="Restore task"
-											>
-												<RotateCcw size={16} />
-												<span>Restore</span>
-											</button>
-											<button
-												onclick={() => handlePermanentDelete(task.id)}
-												class="inline-flex items-center gap-1 min-h-[44px] px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition touch-manipulation"
-												title="Permanently delete"
-											>
-												<Trash2 size={16} />
-												<span>Delete</span>
-											</button>
+									<td class="px-3 py-2 whitespace-nowrap text-right">
+										<div class="flex gap-1.5 justify-end">
+											<button onclick={() => handleRestore(task.id)}
+												class="inline-flex items-center gap-1 h-7 px-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition text-xs font-medium"
+												title="Restore task"><RotateCcw size={12} />Restore</button>
+											<button onclick={() => handlePermanentDelete(task.id)}
+												class="inline-flex items-center gap-1 h-7 px-2.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-xs font-medium"
+												title="Permanently delete"><Trash2 size={12} />Delete</button>
 										</div>
 									</td>
 								</tr>
 							{/each}
-						</tbody>
-					</table>
-				</div>
+					</tbody>
+				</table>
 			</div>
+		</div>
 
-				<div class="md:hidden space-y-4">
-					{#each filteredTasks() as task}
-						<div class="bg-gray-900 border rounded-2xl shadow-sm p-4 space-y-3 {selectedTaskIds.has(task.id) ? 'border-blue-500 bg-blue-950/20' : 'border-gray-800'}">
-							<div class="flex items-start gap-3">
-								<input
-									type="checkbox"
-									checked={selectedTaskIds.has(task.id)}
-									onchange={() => toggleTaskSelection(task.id)}
-									class="mt-1 w-6 h-6 min-w-[24px] rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer touch-manipulation"
-									aria-label="Select task"
-								/>
-								<div class="flex-1">
-									<div class="flex items-start justify-between gap-3">
-										<div>
-											<p class="text-xs uppercase tracking-wide text-gray-400">
-							{task.task_type === 'matrix' ? 'Matrix task' : task.task_type === 'calendar' ? 'Calendar task' : 'Kanban task'}
-						</p>
-											<h3 class="text-lg font-semibold text-gray-200">{task.title}</h3>
-										</div>
-										<div class="text-right text-xs text-gray-400 flex flex-col items-end">
-											<span class="inline-flex items-center gap-1">
-												<Calendar size={14} class="text-gray-500" />
-												{formatDate(task.deleted_at || task.completed_at || task.updated_at)}
-											</span>
-										</div>
+				<div class="md:hidden space-y-2">
+				{#each filteredTasks() as task}
+					<div class="bg-gray-900 border rounded-lg p-3 {selectedTaskIds.has(task.id) ? 'border-blue-700 bg-blue-950/20' : 'border-gray-800'}">
+						<div class="flex items-start gap-2.5 mb-2">
+							<input type="checkbox" checked={selectedTaskIds.has(task.id)} onchange={() => toggleTaskSelection(task.id)}
+								class="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 cursor-pointer flex-shrink-0" aria-label="Select task" />
+							<div class="flex-1 min-w-0">
+								<div class="flex items-start justify-between gap-2">
+									<div class="min-w-0">
+										<p class="text-[9px] uppercase tracking-wide text-gray-600 mb-0.5">
+											{task.task_type === 'matrix' ? 'Matrix' : task.task_type === 'calendar' ? 'Calendar' : 'Kanban'}
+										</p>
+										<h3 class="text-xs font-semibold text-gray-200 leading-snug">{task.title}</h3>
 									</div>
+									<span class="text-[9px] text-gray-600 flex-shrink-0 flex items-center gap-0.5 mt-0.5">
+										<Calendar size={9} />{formatDate(task.deleted_at || task.completed_at || task.updated_at)}
+									</span>
 								</div>
 							</div>
-							{#if task.description}
-								<p class="text-sm text-gray-400">{task.description}</p>
+						</div>
+						{#if task.description}
+							<p class="text-[11px] text-gray-500 mb-2 ml-6 leading-snug">{task.description}</p>
+						{/if}
+						<div class="flex flex-wrap gap-1 mb-2 ml-6">
+							{#if task.deleted_at}
+								<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-red-950 text-red-300">Deleted</span>
+							{:else if task.is_archived}
+								<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-yellow-950 text-yellow-300">Archived</span>
+							{:else if task.completed_at}
+								<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-indigo-950 text-indigo-300">Completed</span>
 							{/if}
 							{#if task.task_type === 'matrix'}
-								<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-950 text-green-300">
-									{getQuadrantLabel(task.quadrant)}
-								</span>						{:else if task.task_type === 'calendar' && task.due_date}
-							<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-cyan-950 text-cyan-300">
-								<CalendarDays size={12} />
-								Due: {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-							</span>							{/if}
-							<div class="flex flex-wrap gap-2">
-								{#if task.deleted_at}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-950 text-red-300">Deleted</span>
-								{:else if task.is_archived}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-950 text-yellow-300">Archived</span>
-								{:else if task.completed_at}
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-950 text-indigo-300">Completed</span>
-								{/if}
-							{#if task.task_type === 'kanban' || task.task_type === 'calendar'}
-								<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {task.task_type === 'calendar' ? 'bg-cyan-950 text-cyan-300' : 'bg-blue-950 text-blue-300'}">{task.status}</span>
-								{/if}
-							</div>
-							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-								<button
-									onclick={() => handleRestore(task.id)}
-									class="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 active:bg-green-800 transition touch-manipulation"
-								>
-									<RotateCcw size={18} /> Restore
-								</button>
-								<button
-									onclick={() => handlePermanentDelete(task.id)}
-									class="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 active:bg-red-800 transition touch-manipulation"
-								>
-									<Trash2 size={18} /> Delete
-								</button>
-							</div>
+								<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-green-950 text-green-300">{getQuadrantLabel(task.quadrant)}</span>
+							{:else if task.task_type === 'calendar' && task.due_date}
+								<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-cyan-950 text-cyan-300">
+									<CalendarDays size={8} />Due: {new Date(task.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+								</span>
+							{/if}
 						</div>
-					{/each}
-				</div>
+						<div class="grid grid-cols-2 gap-1.5 ml-6">
+							<button onclick={() => handleRestore(task.id)}
+								class="inline-flex items-center justify-center gap-1.5 h-8 bg-green-600 text-white rounded-md font-medium text-xs hover:bg-green-700 transition">
+								<RotateCcw size={13} />Restore
+							</button>
+							<button onclick={() => handlePermanentDelete(task.id)}
+								class="inline-flex items-center justify-center gap-1.5 h-8 bg-red-600 text-white rounded-md font-medium text-xs hover:bg-red-700 transition">
+								<Trash2 size={13} />Delete
+							</button>
+						</div>
+					</div>
+				{/each}
 			</div>
-		{/if}
+		</div>
+	{/if}
 </div>

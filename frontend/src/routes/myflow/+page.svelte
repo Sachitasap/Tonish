@@ -488,18 +488,18 @@
 			<div class="flex gap-2 ml-auto">
 				<button
 					onclick={() => { showKanbanQuickTask = !showKanbanQuickTask; if (showKanbanQuickTask) showMatrixQuickTask = false; }}
-					class="bg-green-600 text-white px-3 py-2 min-h-[40px] rounded-md text-sm font-medium hover:bg-green-700 inline-flex items-center gap-1.5 touch-manipulation"
-				><Zap size={14} /> Quick</button>
+					class="bg-green-600 text-white h-8 px-3 rounded-md text-xs font-medium hover:bg-green-700 inline-flex items-center gap-1.5 touch-manipulation"
+				><Zap size={13} /> Quick</button>
 				<button
 					onclick={() => showAddTask = !showAddTask}
-					class="bg-blue-600 text-white px-3 py-2 min-h-[40px] rounded-md text-sm font-medium hover:bg-blue-700 inline-flex items-center gap-1.5 touch-manipulation"
-				><Plus size={14} /> Add</button>
+					class="bg-blue-600 text-white h-8 px-3 rounded-md text-xs font-medium hover:bg-blue-700 inline-flex items-center gap-1.5 touch-manipulation"
+				><Plus size={13} /> Add</button>
 			</div>
 		{:else if activeView === 'matrix'}
 			<button
 				onclick={() => { showMatrixQuickTask = !showMatrixQuickTask; if (showMatrixQuickTask) showKanbanQuickTask = false; }}
-				class="ml-auto bg-purple-600 text-white px-3 py-2 min-h-[40px] rounded-md text-sm font-medium hover:bg-purple-700 inline-flex items-center gap-1.5 touch-manipulation"
-			><Zap size={14} /> Quick</button>
+				class="ml-auto bg-purple-600 text-white h-8 px-3 rounded-md text-xs font-medium hover:bg-purple-700 inline-flex items-center gap-1.5 touch-manipulation"
+			><Zap size={13} /> Quick</button>
 		{/if}
 	</div>
 		
@@ -534,18 +534,18 @@
 	{/if}
 
 	{#if showMatrixQuickTask && activeView === 'matrix'}
-		<div class="bg-gray-900 rounded-lg border border-gray-800 p-3 sm:p-4">
-			<h2 class="text-sm font-semibold mb-3 inline-flex items-center gap-2 text-white"><Zap size={16} /> Matrix Quick Task</h2>
-			<form onsubmit={(e) => { e.preventDefault(); handleMatrixQuickTask(); }} class="grid gap-3 md:grid-cols-3">
+		<div class="bg-gray-900 rounded-lg border border-gray-800 p-2.5">
+			<h2 class="text-xs font-bold mb-2.5 inline-flex items-center gap-1.5 text-white"><Zap size={13} class="text-purple-400" /> Matrix Quick Task</h2>
+			<form onsubmit={(e) => { e.preventDefault(); handleMatrixQuickTask(); }} class="grid gap-2 md:grid-cols-3">
 				<input
 					type="text"
 					bind:value={matrixQuickTaskTitle}
 					placeholder="Task title"
-					class="md:col-span-2 px-4 py-2.5 min-h-[44px] bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 touch-manipulation"
+					class="md:col-span-2 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-500 touch-manipulation"
 				/>
 				<select
 					bind:value={matrixQuickQuadrant}
-					class="px-4 py-2.5 min-h-[44px] bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500 touch-manipulation"
+					class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 touch-manipulation"
 				>
 					{#each matrixQuadrantOptions as option}
 						<option value={option.value}>{option.label}</option>
@@ -554,14 +554,14 @@
 				<div class="md:col-span-3 flex flex-col gap-2 sm:flex-row">
 					<button
 						type="submit"
-						class="flex-1 bg-purple-600 text-white px-5 py-2.5 min-h-[44px] rounded-lg font-medium text-sm hover:bg-purple-700 active:bg-purple-800 touch-manipulation"
+						class="flex-1 bg-purple-600 text-white h-9 px-4 rounded-lg font-medium text-xs hover:bg-purple-700 touch-manipulation"
 					>
 						Add
 					</button>
 					<button
 						type="button"
 						onclick={() => { showMatrixQuickTask = false; matrixQuickTaskTitle = ''; }}
-						class="flex-1 bg-gray-700 text-gray-300 px-5 py-2.5 min-h-[44px] rounded-lg text-sm hover:bg-gray-600 active:bg-gray-500 touch-manipulation"
+						class="flex-1 bg-gray-700 text-gray-300 h-9 px-4 rounded-lg text-xs hover:bg-gray-600 touch-manipulation"
 					>
 						Cancel
 					</button>
@@ -571,117 +571,80 @@
 	{/if}
 	
 	{#if showAddTask && activeView === 'kanban'}
-		<div class="bg-gray-800 rounded-lg shadow p-6">
-			<h2 class="text-lg font-semibold mb-4 text-white">New Task</h2>
-			<form onsubmit={(e) => { e.preventDefault(); handleAddTask(); }} class="space-y-4">
-				<div>
-					<label for={newTaskTypeId} class="block text-sm font-medium text-gray-300 mb-2">Task Type</label>
-					<select
-						bind:value={newTask.task_type}
-						id={newTaskTypeId}
-						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-					>
-						<option value="kanban">Kanban (Personal Projects)</option>
-					</select>
-				</div>
-				
-				<div>
-					<label for={newTaskTitleId} class="block text-sm font-medium text-gray-300 mb-2">Title *</label>
-					<input
-						type="text"
-						bind:value={newTask.title}
-						required
-						placeholder="Enter task title"
-						id={newTaskTitleId}
-						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					/>
-				</div>
-				
-				<div>
-					<label for={newTaskDescriptionId} class="block text-sm font-medium text-gray-300 mb-2">Description</label>
-					<textarea
-						bind:value={newTask.description}
-						rows="3"
-						placeholder="Add details about your task"
-						id={newTaskDescriptionId}
-						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					></textarea>
-				</div>
-				
-				<div class="grid grid-cols-2 gap-4">
+		<div class="bg-gray-900 border border-gray-800 rounded-lg p-3 sm:p-4">
+			<h2 class="text-xs font-bold text-white mb-3 flex items-center gap-1.5">
+				<Plus size={12} class="text-blue-400" /> New Task
+			</h2>
+			<form onsubmit={(e) => { e.preventDefault(); handleAddTask(); }} class="space-y-3">
+				<div class="grid grid-cols-2 gap-2.5">
 					<div>
-						<label for={newTaskPriorityId} class="block text-sm font-medium text-gray-300 mb-2">Priority</label>
-						<select
-							bind:value={newTask.priority}
-							id={newTaskPriorityId}
-							class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-						>
+						<label for={newTaskTypeId} class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">Type</label>
+						<select bind:value={newTask.task_type} id={newTaskTypeId}
+							class="w-full h-9 px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+							<option value="kanban">Kanban</option>
+						</select>
+					</div>
+					<div>
+						<label for={newTaskPriorityId} class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">Priority</label>
+						<select bind:value={newTask.priority} id={newTaskPriorityId}
+							class="w-full h-9 px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
 							<option value="low">Low</option>
 							<option value="medium">Medium</option>
 							<option value="high">High</option>
 						</select>
 					</div>
-					
+				</div>
+
+				<div>
+					<label for={newTaskTitleId} class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">Title <span class="text-red-500 normal-case">*</span></label>
+					<input type="text" bind:value={newTask.title} required placeholder="Task title" id={newTaskTitleId}
+						class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+				</div>
+
+				<div>
+					<label for={newTaskDescriptionId} class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">Description</label>
+					<textarea bind:value={newTask.description} rows="2" placeholder="Optional details" id={newTaskDescriptionId}
+						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+				</div>
+
+				<div class="grid grid-cols-2 gap-2.5">
 					<div>
-						<label for={newTaskStatusId} class="block text-sm font-medium text-gray-300 mb-2">Status</label>
-						<select
-							bind:value={newTask.status}
-							id={newTaskStatusId}
-							class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-						>
+						<label for={newTaskStatusId} class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">Status</label>
+						<select bind:value={newTask.status} id={newTaskStatusId}
+							class="w-full h-9 px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
 							<option value="todo">To Do</option>
 							<option value="in-progress">In Progress</option>
 							<option value="done">Done</option>
 						</select>
 					</div>
+					<div>
+						<label for="task-due-date" class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">Due Date</label>
+						<input type="date" bind:value={newTask.due_date} id="task-due-date"
+							class="w-full h-9 px-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" />
+					</div>
 				</div>
-				
+
 				<div>
-					<label for={newTaskTagsId} class="block text-sm font-medium text-gray-300 mb-2">Tags (comma-separated)</label>
-					<input
-						type="text"
-						bind:value={newTask.tags}
-						placeholder="work, urgent, personal"
-						id={newTaskTagsId}
-						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					/>
+					<label for={newTaskTagsId} class="block text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">Tags <span class="normal-case text-gray-600 font-normal">(comma separated)</span></label>
+					<input type="text" bind:value={newTask.tags} placeholder="work, urgent, personal" id={newTaskTagsId}
+						class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-xs placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" />
 				</div>
-				
-				<div>
-					<label for="task-due-date" class="block text-sm font-medium text-gray-300 mb-2 inline-flex items-center gap-2">
-						<CalendarDays size={16} />
-						Due Date
-					</label>
-					<input
-						type="date"
-						bind:value={newTask.due_date}
-						id="task-due-date"
-						class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-					/>
-				</div>
-				
-				<div class="flex gap-2 pt-2">
-					<button
-						type="submit"
-						class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-medium"
-					>
-						Create Task
-					</button>
-					<button
-						type="button"
-						onclick={() => { showAddTask = false; resetNewTask(); }}
-						class="bg-gray-700 text-gray-300 px-6 py-2 rounded-md hover:bg-gray-600 font-medium"
-					>
-						Cancel
-					</button>
+
+				<div class="flex gap-2 pt-1">
+					<button type="submit" class="h-9 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-xs transition">Create</button>
+					<button type="button" onclick={() => { showAddTask = false; resetNewTask(); }}
+						class="h-9 px-4 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 text-xs transition">Cancel</button>
 				</div>
 			</form>
 		</div>
 	{/if}
 	
 	{#if loading}
-		<div class="text-center py-12">
-			<p class="text-gray-400">Loading tasks...</p>
+		<div class="flex items-center justify-center py-16">
+			<div class="flex flex-col items-center gap-3">
+				<div class="w-8 h-8 border-2 border-gray-700 border-t-blue-500 rounded-full animate-spin"></div>
+				<p class="text-xs text-gray-500">Loading tasks…</p>
+			</div>
 		</div>
 	{:else if activeView === 'kanban'}
 		<!-- Kanban Board -->

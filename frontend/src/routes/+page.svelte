@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { taskAPI } from '$lib/api';
 	import { wsService } from '$lib/websocket';
-	import { BarChart3, Zap, CheckCircle, Kanban, LayoutGrid, Calendar, AlarmClock, AlertTriangle, Clock } from 'lucide-svelte';
+	import { BarChart3, Zap, CheckCircle, Kanban, LayoutGrid, Calendar, AlarmClock, AlertTriangle, Clock, ChevronRight } from 'lucide-svelte';
 
 	type TaskStatus = 'todo' | 'in-progress' | 'done';
 	type TaskPriority = 'low' | 'medium' | 'high';
@@ -153,8 +153,8 @@
 						Task Summary
 					</h2>
 					<div class="space-y-0.5">
-						<!-- Today's Tasks -->
-						<a href="/myflow" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+						<!-- Today's Tasks → My Flow -->
+						<a href="/myflow" class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors cursor-pointer">
 							<div class="w-5 h-5 rounded bg-amber-950 flex items-center justify-center flex-shrink-0">
 								<CheckCircle size={10} class="text-amber-400" />
 							</div>
@@ -162,39 +162,43 @@
 							{#if todayCompletedTasks.length > 0}
 								<span class="text-[9px] text-gray-500">{todayCompletedTasks.length} done</span>
 							{/if}
-							<span class="text-sm font-bold text-white w-6 text-right leading-none">{todayTasks.length}</span>
+							<span class="text-sm font-bold text-white w-5 text-right leading-none">{todayTasks.length}</span>
+							<ChevronRight size={11} class="text-gray-600 group-hover:text-gray-400 flex-shrink-0 transition-colors" />
 						</a>
 
-						<!-- Active Tasks -->
-						<a href="/myflow" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+						<!-- Active Tasks → My Flow -->
+						<a href="/myflow" class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors cursor-pointer">
 							<div class="w-5 h-5 rounded bg-emerald-950 flex items-center justify-center flex-shrink-0">
 								<Zap size={10} class="text-emerald-400" />
 							</div>
 							<span class="text-[10px] text-gray-400 flex-1 leading-none">Active</span>
 							<span class="text-[9px] text-gray-500">{completedTasks} done</span>
-							<span class="text-sm font-bold text-white w-6 text-right leading-none">{inProgressTasks}</span>
+							<span class="text-sm font-bold text-white w-5 text-right leading-none">{inProgressTasks}</span>
+							<ChevronRight size={11} class="text-gray-600 group-hover:text-gray-400 flex-shrink-0 transition-colors" />
 						</a>
 
-						<!-- Upcoming Tasks -->
-						<a href="/calendar" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+						<!-- Upcoming Tasks → Calendar -->
+						<a href="/calendar" class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors cursor-pointer">
 							<div class="w-5 h-5 rounded bg-blue-950 flex items-center justify-center flex-shrink-0">
 								<Calendar size={10} class="text-blue-400" />
 							</div>
 							<span class="text-[10px] text-gray-400 flex-1 leading-none">Upcoming</span>
 							<span class="text-[9px] text-gray-500">7 days</span>
-							<span class="text-sm font-bold text-white w-6 text-right leading-none">{upcomingTasks.length}</span>
+							<span class="text-sm font-bold text-white w-5 text-right leading-none">{upcomingTasks.length}</span>
+							<ChevronRight size={11} class="text-gray-600 group-hover:text-gray-400 flex-shrink-0 transition-colors" />
 						</a>
 
-						<!-- Overdue Tasks -->
-						<a href="/myflow" class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors">
+						<!-- Overdue Tasks → My Flow -->
+						<a href="/myflow" class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors cursor-pointer">
 							<div class="w-5 h-5 rounded bg-red-950 flex items-center justify-center flex-shrink-0">
-								<Zap size={10} class="text-red-400" />
+								<AlertTriangle size={10} class="text-red-400" />
 							</div>
 							<span class="text-[10px] text-gray-400 flex-1 leading-none">Overdue</span>
 							{#if overdueTasks.length > 0}
 								<span class="text-[9px] text-red-400 font-medium">urgent</span>
 							{/if}
-							<span class="text-sm font-bold {overdueTasks.length > 0 ? 'text-red-400' : 'text-white'} w-6 text-right leading-none">{overdueTasks.length}</span>
+							<span class="text-sm font-bold {overdueTasks.length > 0 ? 'text-red-400' : 'text-white'} w-5 text-right leading-none">{overdueTasks.length}</span>
+							<ChevronRight size={11} class="{overdueTasks.length > 0 ? 'text-red-700 group-hover:text-red-400' : 'text-gray-600 group-hover:text-gray-400'} flex-shrink-0 transition-colors" />
 						</a>
 					</div>
 				</div>

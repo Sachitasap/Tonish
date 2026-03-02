@@ -45,6 +45,7 @@
 	let showNotification = $state(false);
 	let notificationMessage = $state('');
 	let notificationType = $state<'success' | 'error'>('success');
+	let lastSavedAt = $state<string>('');
 
 	const notebookId = $derived(parseInt($page.params.id ?? '0', 10));
 	const pageSearchInputId = 'page-search-input';
@@ -153,6 +154,7 @@
 		editingContent = p.content;
 		isEditMode = false;
 		showPageContent = true;
+		lastSavedAt = '';
 	}
 	
 	async function handleSaveContent() {
@@ -165,11 +167,12 @@
 			await pageAPI.update(selectedPage.id, updatedPage);
 			selectedPage = updatedPage;
 			isEditMode = false;
+			lastSavedAt = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 			await loadNotebook();
 			showNotification = true;
-			notificationMessage = 'Content saved successfully';
+			notificationMessage = '✓ Saved';
 			notificationType = 'success';
-			setTimeout(() => showNotification = false, 3000);
+			setTimeout(() => showNotification = false, 2000);
 		} catch (error) {
 			console.error('Failed to save content:', error);
 			showNotification = true;
@@ -448,15 +451,15 @@ ${body}
 <div class="flex flex-col lg:flex-row min-h-screen">
 	<!-- Sidebar -->
 	<div class={`${sidebarCollapsed ? 'lg:w-16' : 'lg:w-80'} w-full bg-gray-900 text-white transition-all duration-300 lg:flex-shrink-0 overflow-hidden border-r border-gray-800`}>
-		<div class="p-4 h-full flex flex-col">
+		<div class="p-3 h-full flex flex-col">
 			<!-- Sidebar Header -->
-			<div class="flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
+			<div class="flex justify-between items-center mb-3 pb-2.5 border-b border-gray-800">
 				{#if !sidebarCollapsed}
-					<h2 class="text-base font-bold text-white">Pages</h2>
+					<h2 class="text-xs font-bold text-white uppercase tracking-wide">Pages</h2>
 				{/if}
 				<button
 					onclick={() => sidebarCollapsed = !sidebarCollapsed}
-					class="text-gray-400 hover:bg-gray-700 p-2 rounded transition"
+					class="text-gray-500 hover:bg-gray-700 p-1.5 rounded transition"
 					title={sidebarCollapsed ? 'Expand' : 'Collapse'}
 				>
 					{#if sidebarCollapsed}
@@ -469,16 +472,16 @@ ${body}
 			
 			{#if !sidebarCollapsed}
 				<!-- Back to All Notebooks -->
-				<a href="/myflowbook" class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded transition mb-3 text-sm font-medium text-blue-400">
-					<ArrowLeft size={16} />
+				<a href="/myflowbook" class="flex items-center gap-1.5 px-2 h-7 hover:bg-gray-800 rounded transition mb-2.5 text-xs font-medium text-blue-400">
+					<ArrowLeft size={13} />
 					Back
 				</a>
 				
 				<!-- Current Notebook Info -->
 				{#if notebook}
-					<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
-						<div class="flex items-start justify-between gap-2 mb-2">
-							<h3 class="font-bold text-sm text-white truncate">{notebook.name}</h3>
+					<div class="mb-3 p-2.5 bg-gray-800 rounded-lg border border-gray-700">
+						<div class="flex items-start justify-between gap-2 mb-1.5">
+							<h3 class="font-semibold text-xs text-white truncate">{notebook.name}</h3>
 							<button
 								onclick={handleTogglePin}
 								class="hover:scale-110 transition p-1 rounded hover:bg-gray-700"
@@ -492,24 +495,24 @@ ${body}
 				{/if}
 				
 				<!-- Quick Actions -->
-				<div class="mb-4 pb-3 border-b border-gray-700">
+				<div class="mb-3 pb-2.5 border-b border-gray-800">
 					<button
 						onclick={() => showAddPage = !showAddPage}
-						class="w-full flex items-center gap-2 p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium"
+						class="w-full flex items-center gap-1.5 h-8 px-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs font-medium"
 					>
-						<Plus size={14} />
+						<Plus size={13} />
 						New Page
 					</button>
 				</div>
 				
 				<!-- Search -->
-				<div class="mb-4 relative">
-					<Search size={14} class="absolute left-2 top-2.5 text-gray-500" />
+				<div class="mb-3 relative">
+					<Search size={12} class="absolute left-2 top-2 text-gray-500" />
 					<input
 						type="text"
 						bind:value={searchQuery}
-						placeholder="Search..."
-						class="w-full pl-7 pr-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						placeholder="Search pages…"
+						class="w-full h-7 pl-6 pr-2 bg-gray-800 border border-gray-700 rounded-md text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 					/>
 				</div>
 				
@@ -570,24 +573,24 @@ ${body}
 		</div>
 	</div>
 	
-	<!-- Main Content -->
 	<div class="flex-1 bg-gray-950 overflow-auto">
-		<div class="max-w-5xl mx-auto p-6 space-y-6">
+		<div class="p-3 sm:p-4 space-y-3">
 			<!-- Notification -->
 			{#if showNotification}
-				<div class={`fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-in font-medium ${notificationType === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+				<div class={`fixed top-14 right-3 px-3 py-2 rounded-lg shadow-xl z-50 text-xs font-medium border ${notificationType === 'success' ? 'bg-green-950 border-green-700 text-green-300' : 'bg-red-950 border-red-700 text-red-300'}`}>
 					{notificationMessage}
 				</div>
 			{/if}
-			
+
 			<!-- Header -->
-			<div class="flex justify-between items-center">
-				<div class="flex items-center gap-3">
+			<div class="flex items-center justify-between gap-3">
+				<div class="flex items-center gap-2 min-w-0">
 					{#if notebook}
-						<h1 class="text-xl sm:text-2xl font-bold text-white">{notebook.name}</h1>
+						<h1 class="text-sm font-bold text-white leading-tight truncate">{notebook.name}</h1>
+						<span class="text-[10px] text-gray-600 flex-shrink-0">{pages.length} page{pages.length !== 1 ? 's' : ''}</span>
 					{/if}
 				</div>
-				<div class="flex flex-wrap gap-2 items-center">
+				<div class="flex items-center gap-1.5 flex-shrink-0">
 					<!-- Export Dropdown -->
 					<div class="relative">
 						{#if showExportMenu}
@@ -595,57 +598,49 @@ ${body}
 						{/if}
 						<button
 							onclick={() => showExportMenu = !showExportMenu}
-							class="bg-gray-800 border border-gray-700 text-gray-200 px-3 py-2 rounded-lg hover:bg-gray-700 hover:border-gray-600 transition inline-flex items-center gap-1.5 text-sm font-medium"
+							class="h-8 px-2.5 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-700 transition inline-flex items-center gap-1 text-xs font-medium"
 						>
-							<Download size={15} />
+							<Download size={12} />
 							<span class="hidden sm:inline">Export</span>
-							<ChevronDown size={13} class="text-gray-500 {showExportMenu ? 'rotate-180' : ''} transition-transform" />
+							<ChevronDown size={11} class="text-gray-500 {showExportMenu ? 'rotate-180' : ''} transition-transform" />
 						</button>
 						{#if showExportMenu}
-							<div class="absolute right-0 mt-1.5 w-52 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-20 overflow-hidden py-1">
-								<p class="px-3 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Whole Notebook</p>
-								<button onclick={exportToPDF} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
-									<span class="w-5 h-5 rounded bg-red-900 text-red-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">P</span>
-									Export as PDF
+							<div class="absolute right-0 mt-1.5 w-48 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-20 overflow-hidden py-1">
+								<p class="px-3 py-1.5 text-[9px] font-semibold text-gray-600 uppercase tracking-wider">Whole Notebook</p>
+								<button onclick={exportToPDF} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-300 flex items-center gap-2 transition text-xs">
+									<span class="w-4 h-4 rounded bg-red-900 text-red-400 flex items-center justify-center flex-shrink-0 text-[9px] font-bold">P</span>PDF
 								</button>
-								<button onclick={exportToMarkdown} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
-									<span class="w-5 h-5 rounded bg-blue-900 text-blue-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">#</span>
-									Export as Markdown
+								<button onclick={exportToMarkdown} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-300 flex items-center gap-2 transition text-xs">
+									<span class="w-4 h-4 rounded bg-blue-900 text-blue-400 flex items-center justify-center flex-shrink-0 text-[9px] font-bold">#</span>Markdown
 								</button>
-								<button onclick={exportToText} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
-									<span class="w-5 h-5 rounded bg-gray-700 text-gray-300 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">T</span>
-									Export as Text
+								<button onclick={exportToText} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-300 flex items-center gap-2 transition text-xs">
+									<span class="w-4 h-4 rounded bg-gray-700 text-gray-300 flex items-center justify-center flex-shrink-0 text-[9px] font-bold">T</span>Text
 								</button>
-								<button onclick={exportToCSV} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
-									<span class="w-5 h-5 rounded bg-emerald-900 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">,</span>
-									Export as CSV
+								<button onclick={exportToCSV} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-300 flex items-center gap-2 transition text-xs">
+									<span class="w-4 h-4 rounded bg-emerald-900 text-emerald-400 flex items-center justify-center flex-shrink-0 text-[9px] font-bold">,</span>CSV
 								</button>
-								<button onclick={exportToJSON} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-200 flex items-center gap-2.5 transition text-sm">
-									<span class="w-5 h-5 rounded bg-yellow-900 text-yellow-400 flex items-center justify-center flex-shrink-0 text-[10px] font-bold">&#123;&#125;</span>
-									Export as JSON
+								<button onclick={exportToJSON} class="w-full text-left px-3 py-2 hover:bg-gray-700 text-gray-300 flex items-center gap-2 transition text-xs">
+									<span class="w-4 h-4 rounded bg-yellow-900 text-yellow-400 flex items-center justify-center flex-shrink-0 text-[9px] font-bold">&#123;&#125;</span>JSON
 								</button>
 							</div>
 						{/if}
 					</div>
-					<button
-						onclick={() => showAddPage = !showAddPage}
-						class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-lg hover:shadow-lg transition inline-flex items-center gap-2 font-medium"
-					>
-						<Plus size={18} />
-						<span class="hidden sm:inline">New Page</span>
+					<button onclick={() => showAddPage = !showAddPage}
+						class="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition inline-flex items-center gap-1.5 text-xs font-medium">
+						<Plus size={13} /><span class="hidden sm:inline">New Page</span><span class="sm:hidden">Add</span>
 					</button>
 				</div>
 			</div>
 	
 			<!-- Search Bar -->
-			<div class="bg-gray-900 rounded-lg border border-gray-800 p-1 flex items-center gap-2 transition">
-				<Search size={18} class="text-gray-500 ml-3" />
+			<div class="bg-gray-900 rounded-lg border border-gray-800 flex items-center gap-2 transition">
+				<Search size={14} class="text-gray-500 ml-3 flex-shrink-0" />
 				<input
 					type="text"
 					bind:value={searchQuery}
-					placeholder="Search pages by title or content..."
+					placeholder="Search pages by title or content…"
 					id={pageSearchInputId}
-					class="flex-1 px-3 py-3 bg-gray-900 border-none focus:outline-none text-white placeholder-gray-500"
+					class="flex-1 h-9 px-2 bg-transparent border-none focus:outline-none text-sm text-white placeholder-gray-500"
 					onkeydown={(e) => e.key === 'Enter' && handleSearch()}
 				/>
 				{#if searchQuery}
@@ -671,162 +666,104 @@ ${body}
 			{:else}
 				<!-- Page Content Viewer -->
 				{#if pages.length === 0}
-				<div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow-sm border border-purple-100 p-16 text-center">
-					<div class="mb-4 flex justify-center"><Pin size={64} class="text-purple-400" /></div>
-					<p class="text-gray-600 text-lg mb-2">No pages yet</p>
-						<p class="text-gray-500 mb-6">Create your first page to start taking notes</p>
-						<button
-							onclick={() => showAddPage = true}
-							class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-3 rounded-lg hover:shadow-lg transition font-medium inline-flex items-center gap-2"
-						>
-							<Plus size={20} /> Create First Page
-						</button>
-					</div>
+				<div class="bg-gray-900 border border-gray-800 rounded-lg p-12 text-center">
+					<div class="w-10 h-10 rounded-xl bg-purple-950 flex items-center justify-center mx-auto mb-3"><Plus size={18} class="text-purple-400" /></div>
+					<p class="text-xs font-medium text-gray-400 mb-1">No pages yet</p>
+					<p class="text-[11px] text-gray-600 mb-4">Create your first page to start taking notes</p>
+					<button onclick={() => showAddPage = true} class="h-8 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium transition inline-flex items-center gap-1.5">
+						<Plus size={13} /> New Page
+					</button>
+				</div>
 				{:else if !showPageContent || !selectedPage}
-				<div class="bg-gradient-to-br from-gray-50 to-white rounded-lg shadow-sm border border-gray-200 p-16 text-center">
-					<div class="mb-4 flex justify-center"><ArrowLeft size={64} class="text-gray-400" /></div>
-					<p class="text-gray-600 text-lg">Select a page from the sidebar to start editing</p>
-					</div>
+				<div class="bg-gray-900 border border-gray-800 rounded-lg p-12 text-center">
+					<div class="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center mx-auto mb-3"><Book size={18} class="text-gray-500" /></div>
+					<p class="text-xs font-medium text-gray-400 mb-1">No page selected</p>
+					<p class="text-[11px] text-gray-600">Pick a page from the sidebar to start reading or editing</p>
+				</div>
 				{:else}
 					<div class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
 						<!-- Page Header -->
-						<div class="border-b border-gray-800 p-6 space-y-4 bg-gray-900">
-							<div class="flex justify-between items-start gap-3 flex-wrap">
-								<div class="flex-1">
-									<h2 class="text-3xl font-bold text-white break-words">{selectedPage.title}</h2>
-									<p class="text-sm text-gray-400 mt-2">
-										Created: {formatDateOnly(selectedPage.created_at)} • Updated: {formatDateOnly(selectedPage.updated_at)}
-									</p>
-								</div>
-								<div class="flex flex-wrap gap-2">
-									<button
-										onclick={copyPageContent}
-										class="bg-blue-900 text-blue-300 hover:bg-blue-800 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
-										title="Copy content to clipboard"
-									>
-										<Copy size={16} />
-										<span class="hidden sm:inline">Copy</span>
-									</button>
-									<!-- Per-page export -->
-									<button
-										onclick={() => exportCurrentPage('md')}
-										class="bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-lg transition inline-flex items-center gap-1.5 font-medium text-sm"
-										title="Export this page as Markdown"
-									>
-										<FileDown size={14} />
-										<span class="text-[11px] font-mono">.md</span>
-									</button>
-									<button
-										onclick={() => exportCurrentPage('txt')}
-										class="bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-lg transition inline-flex items-center gap-1.5 font-medium text-sm"
-										title="Export this page as plain text"
-									>
-										<FileDown size={14} />
-										<span class="text-[11px] font-mono">.txt</span>
-									</button>
-									<button
-										onclick={duplicatePage}
-										class="bg-indigo-900 text-indigo-300 hover:bg-indigo-800 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
-										title="Duplicate this page"
-									>
-										<Copy size={16} />
-										<span class="hidden sm:inline">Duplicate</span>
-									</button>
-									<button
-										onclick={() => isEditMode = !isEditMode}
-										class={`px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm ${isEditMode ? 'bg-purple-900 text-purple-300 hover:bg-purple-800' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
-									>
-										{#if isEditMode}
-											<Eye size={16} />
-											<span class="hidden sm:inline">Preview</span>
+						<div class="border-b border-gray-800 px-4 py-3">
+							<div class="flex items-start justify-between gap-3">
+								<!-- Title + meta -->
+								<div class="min-w-0 flex-1">
+									<h2 class="text-base font-bold text-white leading-snug break-words">{selectedPage.title}</h2>
+									<div class="flex flex-wrap items-center gap-2 mt-1">
+										<span class="text-[10px] text-gray-600">Created {formatDateOnly(selectedPage.created_at)}</span>
+										<span class="text-gray-700 text-[10px]">·</span>
+										{#if lastSavedAt}
+											<span class="inline-flex items-center gap-1 text-[10px] bg-green-950 text-green-400 border border-green-900 px-1.5 py-0.5 rounded-full">
+												<span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+												Saved {lastSavedAt}
+											</span>
 										{:else}
-											<Edit2 size={16} />
-											<span class="hidden sm:inline">Edit</span>
+											<span class="text-[10px] text-gray-600">Last updated {formatDateOnly(selectedPage.updated_at)}</span>
 										{/if}
+									</div>
+									{#if selectedPage.tags}
+										<div class="flex flex-wrap gap-1 mt-2">
+											{#each selectedPage.tags.split(',').filter(t => t.trim()) as tag}
+												<span class="text-[9px] bg-purple-950 text-purple-400 border border-purple-900 px-1.5 py-0.5 rounded-full">{tag.trim()}</span>
+											{/each}
+										</div>
+									{/if}
+								</div>
+								<!-- Action buttons -->
+								<div class="flex items-center gap-1 flex-shrink-0">
+									<button onclick={copyPageContent} title="Copy content" class="h-7 w-7 flex items-center justify-center rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition">
+										<Copy size={13} />
+									</button>
+									<button onclick={() => exportCurrentPage('md')} title="Export as .md" class="h-7 px-2 flex items-center gap-1 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition text-[10px] font-mono">
+										<FileDown size={11} />.md
+									</button>
+									<button onclick={() => exportCurrentPage('txt')} title="Export as .txt" class="h-7 px-2 flex items-center gap-1 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition text-[10px] font-mono">
+										<FileDown size={11} />.txt
+									</button>
+									<button onclick={duplicatePage} title="Duplicate page" class="h-7 w-7 flex items-center justify-center rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition">
+										<Copy size={13} />
 									</button>
 									<button
-										onclick={() => selectedPage && handleDeletePage(selectedPage.id)}
-										class="bg-red-950 text-red-400 hover:bg-red-900 px-4 py-2 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
+										onclick={() => { isEditMode = !isEditMode; if (!isEditMode) editingContent = selectedPage!.content; }}
+										class={`h-7 px-2.5 rounded-md text-xs font-medium transition inline-flex items-center gap-1 ${isEditMode ? 'bg-purple-950 text-purple-300 border border-purple-800' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
 									>
-										<Trash2 size={16} />
-										<span class="hidden sm:inline">Delete</span>
+										{#if isEditMode}<Eye size={12} /> View{:else}<Edit2 size={12} /> Edit{/if}
+									</button>
+									<button onclick={() => selectedPage && handleDeletePage(selectedPage.id)} title="Delete page" class="h-7 w-7 flex items-center justify-center rounded-md bg-red-950 hover:bg-red-900 text-red-400 hover:text-red-300 transition">
+										<Trash2 size={13} />
 									</button>
 								</div>
 							</div>
-							
-							{#if selectedPage.tags}
-								<div class="flex flex-wrap gap-2 pt-2">
-									{#each selectedPage.tags.split(',').filter(t => t.trim()) as tag}
-										<span class="text-xs bg-purple-950 text-purple-300 px-3 py-1 rounded-full font-medium">{tag.trim()}</span>
-									{/each}
-								</div>
-							{/if}
 						</div>
-						
-						<!-- Rich Text Editor / Viewer -->
-						<div class="p-6">
+
+						<!-- Editor / Viewer -->
+						<div class="p-4">
 							{#if isEditMode}
-								<!-- Toolbar -->
-								<div class="mb-4 flex flex-wrap gap-2 border-b border-gray-700 pb-4">
-									<button
-										onclick={() => formatText('bold')}
-										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-semibold text-sm"
-										title="Bold (select text)"
-									>
-										<strong>B</strong>
-									</button>
-									<button
-										onclick={() => formatText('italic')}
-										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-semibold italic text-sm"
-										title="Italic (select text)"
-									>
-										<em>I</em>
-									</button>
-									<button
-										onclick={() => formatText('code')}
-										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-mono text-sm"
-										title="Code (select text)"
-									>
-										&lt;/&gt;
-									</button>
-									<button
-										onclick={() => formatText('heading')}
-										class="px-3 py-2 bg-gray-700 text-gray-200 hover:bg-gray-600 rounded-lg transition font-bold text-sm"
-										title="Heading (select text)"
-									>
-										H1
-									</button>
+								<!-- Compact toolbar -->
+								<div class="mb-2 flex items-center gap-1 pb-2 border-b border-gray-800">
+									<button onclick={() => formatText('bold')} title="Bold" class="h-7 px-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs font-bold text-gray-300 hover:text-white transition"><strong>B</strong></button>
+									<button onclick={() => formatText('italic')} title="Italic" class="h-7 px-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs italic text-gray-300 hover:text-white transition"><em>I</em></button>
+									<button onclick={() => formatText('code')} title="Code" class="h-7 px-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs font-mono text-gray-300 hover:text-white transition">&lt;/&gt;</button>
+									<button onclick={() => formatText('heading')} title="Heading" class="h-7 px-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded text-xs font-bold text-gray-300 hover:text-white transition">H1</button>
 									<div class="flex-1"></div>
-									<button
-										onclick={handleSaveContent}
-										class="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition inline-flex items-center gap-2 font-medium text-sm"
-									>
-										<Download size={16} />
-										<span class="hidden sm:inline">Save</span>
+									<span class="text-[10px] text-gray-600">Ctrl+S to save</span>
+									<button onclick={handleSaveContent} class="h-7 px-3 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-medium transition inline-flex items-center gap-1">
+										<Download size={11} /> Save
 									</button>
 								</div>
-								
-								<!-- Editor -->
 								<textarea
 									bind:value={editingContent}
-									rows="20"
-									class="w-full px-4 py-3 bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
-									placeholder="Write your content here... (Supports markdown)"
+									rows="22"
+									class="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 text-gray-200 placeholder:text-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-500 font-mono text-sm leading-relaxed resize-y"
+									placeholder="Write your notes here… Markdown is supported: **bold**, *italic*, `code`, # Heading"
 								></textarea>
-								
-								<div class="mt-4 p-4 bg-blue-950 border border-blue-900 rounded-lg">
-									<p class="text-sm text-blue-300 flex items-center gap-2">
-										<Lightbulb size={16} class="text-blue-400" /> <strong>Tip:</strong> Use <code class="bg-blue-900 px-1 rounded">**text**</code> for bold,
-											<code class="bg-blue-900 px-1 rounded">*text*</code> for italic, 
-											<code class="bg-blue-900 px-1 rounded">`code`</code> for inline code, 
-											and <code class="bg-blue-900 px-1 rounded"># Heading</code> for headings
-									</p>
-								</div>
 							{:else}
-								<!-- Preview -->
-									<div class="prose prose-invert prose-sm max-w-none text-gray-200 leading-relaxed">
+								<!-- Read view -->
+								<div class="prose prose-invert prose-sm max-w-none text-gray-300 leading-relaxed">
 									{@html renderMarkdown(selectedPage.content)}
 								</div>
+								{#if !selectedPage.content}
+									<p class="text-[11px] text-gray-600 italic text-center py-8">This page is empty — click Edit to add content</p>
+								{/if}
 							{/if}
 						</div>
 					</div>

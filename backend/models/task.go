@@ -23,4 +23,15 @@ type Task struct {
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
 	UserID      uint       `json:"user_id"`
+
+	// Payment tracking fields
+	IsPayment    bool       `json:"is_payment" gorm:"default:false"`
+	Amount       float64    `json:"amount" gorm:"default:0"`
+	Currency     string     `json:"currency" gorm:"default:'USD'"`
+	IsPaid       bool       `json:"is_paid" gorm:"default:false"`
+	PaidAt       *time.Time `json:"paid_at"`
+	PaymentNotes string     `json:"payment_notes"`
+
+	// Calendar subtype: regular, payment, reminder, event
+	CalendarSubtype string `json:"calendar_subtype" gorm:"default:'regular'"`
 }
