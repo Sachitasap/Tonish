@@ -645,6 +645,12 @@ class="h-9 px-2 bg-gray-900 border border-gray-700 text-white rounded-md text-xs
 <option value="high">High</option>
 </select>
 </div>
+<select bind:value={editingTask.status}
+class="w-full h-9 px-2 bg-gray-900 border border-gray-700 text-white rounded-md text-xs focus:ring-1 focus:ring-blue-500">
+<option value="todo">To Do</option>
+<option value="in-progress">In Progress</option>
+<option value="done">Done</option>
+</select>
 {#if editingTask.calendar_subtype === 'payment' || editingTask.is_payment}
 <div class="grid grid-cols-2 gap-1.5">
 <input type="number" bind:value={editingTask.amount} min="0" step="0.01"
@@ -661,6 +667,8 @@ Mark as Paid
 {/if}
 <input type="date" bind:value={editingTask.due_date}
 class="w-full h-9 px-3 bg-gray-900 border border-gray-700 text-white rounded-md text-sm focus:ring-1 focus:ring-blue-500" />
+<input type="text" bind:value={editingTask.tags}
+class="w-full h-9 px-3 bg-gray-900 border border-gray-700 text-white rounded-md text-sm focus:ring-1 focus:ring-blue-500" placeholder="Tags (comma separated)" />
 <div class="flex gap-1.5">
 <button onclick={handleSaveEdit} class="flex-1 h-9 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 touch-manipulation">Save</button>
 <button onclick={() => { editingTask = null; }} class="flex-1 h-9 bg-gray-700 text-gray-200 rounded-md text-xs font-medium hover:bg-gray-600 touch-manipulation">Cancel</button>
@@ -716,7 +724,7 @@ class="w-7 h-7 flex items-center justify-center hover:bg-yellow-950 rounded text
 <RotateCcw size={11} />
 </button>
 {/if}
-<button onclick={() => { editingTask = { ...task }; }}
+<button onclick={() => { editingTask = { ...task, tags: task.tags || '', due_date: task.due_date ? task.due_date.split('T')[0] : '' }; }}
 class="w-7 h-7 flex items-center justify-center hover:bg-blue-950 rounded text-blue-400 touch-manipulation" title="Edit">
 <Edit2 size={12} />
 </button>

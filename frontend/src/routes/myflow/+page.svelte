@@ -227,7 +227,13 @@
 	
 	function startEditTask(task: Task) {
 		editingTaskId = task.id;
-		editingTask = { ...task };
+		editingTask = {
+			...task,
+			// Normalize ISO date string to YYYY-MM-DD for the date input
+			due_date: task.due_date ? task.due_date.split('T')[0] : task.due_date,
+			// Normalize null tags to empty string
+			tags: task.tags || ''
+		};
 	}
 
 	function cancelEditTask() {
@@ -239,7 +245,12 @@
 		if (!editingTask) return;
 		
 		try {
-			await taskAPI.update(editingTask.id, editingTask);
+			const taskToSave = { ...editingTask };
+			// Convert YYYY-MM-DD back to ISO string before sending
+			if (taskToSave.due_date) {
+				taskToSave.due_date = new Date(taskToSave.due_date.split('T')[0] + 'T00:00:00Z').toISOString();
+			}
+			await taskAPI.update(taskToSave.id, taskToSave);
 			await loadTasks();
 			cancelEditTask();
 		} catch (error) {
@@ -670,6 +681,20 @@
 									placeholder="Description"
 									rows="2"
 								></textarea>
+								<div class="grid grid-cols-2 gap-1.5 mb-1.5">
+									<select bind:value={editingTask.priority} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+										<option value="low">Low</option>
+										<option value="medium">Medium</option>
+										<option value="high">High</option>
+									</select>
+									<select bind:value={editingTask.status} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+										<option value="todo">To Do</option>
+										<option value="in-progress">In Progress</option>
+										<option value="done">Done</option>
+									</select>
+								</div>
+								<input type="date" bind:value={editingTask.due_date} class="w-full h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+								<input type="text" bind:value={editingTask.tags} placeholder="Tags (comma separated)" class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
 								<div class="flex gap-1.5">
 									<button onclick={handleSaveEditedTask} class="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 font-medium">Save</button>
 									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
@@ -729,6 +754,20 @@
 									placeholder="Description"
 									rows="2"
 								></textarea>
+								<div class="grid grid-cols-2 gap-1.5 mb-1.5">
+									<select bind:value={editingTask.priority} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+										<option value="low">Low</option>
+										<option value="medium">Medium</option>
+										<option value="high">High</option>
+									</select>
+									<select bind:value={editingTask.status} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+										<option value="todo">To Do</option>
+										<option value="in-progress">In Progress</option>
+										<option value="done">Done</option>
+									</select>
+								</div>
+								<input type="date" bind:value={editingTask.due_date} class="w-full h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+								<input type="text" bind:value={editingTask.tags} placeholder="Tags (comma separated)" class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
 								<div class="flex gap-1.5">
 									<button onclick={handleSaveEditedTask} class="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 font-medium">Save</button>
 									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
@@ -788,6 +827,20 @@
 									placeholder="Description"
 									rows="2"
 								></textarea>
+								<div class="grid grid-cols-2 gap-1.5 mb-1.5">
+									<select bind:value={editingTask.priority} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-green-500">
+										<option value="low">Low</option>
+										<option value="medium">Medium</option>
+										<option value="high">High</option>
+									</select>
+									<select bind:value={editingTask.status} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-green-500">
+										<option value="todo">To Do</option>
+										<option value="in-progress">In Progress</option>
+										<option value="done">Done</option>
+									</select>
+								</div>
+								<input type="date" bind:value={editingTask.due_date} class="w-full h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white mb-1.5 focus:outline-none focus:ring-1 focus:ring-green-500" />
+								<input type="text" bind:value={editingTask.tags} placeholder="Tags (comma separated)" class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500" />
 								<div class="flex gap-1.5">
 									<button onclick={handleSaveEditedTask} class="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 font-medium">Save</button>
 									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
@@ -870,6 +923,20 @@
 							<div class="bg-gray-900 rounded p-2 border-l-2 border-red-500">
 								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-red-500" placeholder="Task title" />
 								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-red-500 resize-none" placeholder="Description" rows="2" />
+								<div class="grid grid-cols-2 gap-1.5 mb-1.5">
+									<select bind:value={editingTask.priority} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-red-500">
+										<option value="low">Low</option>
+										<option value="medium">Medium</option>
+										<option value="high">High</option>
+									</select>
+									<select bind:value={editingTask.status} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-red-500">
+										<option value="todo">To Do</option>
+										<option value="in-progress">In Progress</option>
+										<option value="done">Done</option>
+									</select>
+								</div>
+								<input type="date" bind:value={editingTask.due_date} class="w-full h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white mb-1.5 focus:outline-none focus:ring-1 focus:ring-red-500" />
+								<input type="text" bind:value={editingTask.tags} placeholder="Tags (comma separated)" class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500" />
 								<div class="flex gap-1.5">
 									<button onclick={handleSaveEditedTask} class="flex-1 bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 font-medium">Save</button>
 									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
@@ -941,6 +1008,20 @@
 							<div class="bg-gray-900 rounded p-2 border-l-2 border-blue-500">
 								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Task title" />
 								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none" placeholder="Description" rows="2" />
+								<div class="grid grid-cols-2 gap-1.5 mb-1.5">
+									<select bind:value={editingTask.priority} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+										<option value="low">Low</option>
+										<option value="medium">Medium</option>
+										<option value="high">High</option>
+									</select>
+									<select bind:value={editingTask.status} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+										<option value="todo">To Do</option>
+										<option value="in-progress">In Progress</option>
+										<option value="done">Done</option>
+									</select>
+								</div>
+								<input type="date" bind:value={editingTask.due_date} class="w-full h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+								<input type="text" bind:value={editingTask.tags} placeholder="Tags (comma separated)" class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
 								<div class="flex gap-1.5">
 									<button onclick={handleSaveEditedTask} class="flex-1 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700 font-medium">Save</button>
 									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
@@ -1012,6 +1093,20 @@
 							<div class="bg-gray-900 rounded p-2 border-l-2 border-yellow-500">
 								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500" placeholder="Task title" />
 								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none" placeholder="Description" rows="2" />
+								<div class="grid grid-cols-2 gap-1.5 mb-1.5">
+									<select bind:value={editingTask.priority} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-yellow-500">
+										<option value="low">Low</option>
+										<option value="medium">Medium</option>
+										<option value="high">High</option>
+									</select>
+									<select bind:value={editingTask.status} class="h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-yellow-500">
+										<option value="todo">To Do</option>
+										<option value="in-progress">In Progress</option>
+										<option value="done">Done</option>
+									</select>
+								</div>
+								<input type="date" bind:value={editingTask.due_date} class="w-full h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white mb-1.5 focus:outline-none focus:ring-1 focus:ring-yellow-500" />
+								<input type="text" bind:value={editingTask.tags} placeholder="Tags (comma separated)" class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-500" />
 								<div class="flex gap-1.5">
 									<button onclick={handleSaveEditedTask} class="flex-1 bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700 font-medium">Save</button>
 									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
@@ -1083,6 +1178,20 @@
 							<div class="bg-gray-800 rounded p-2 border-l-2 border-gray-500">
 								<input type="text" bind:value={editingTask.title} class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-gray-400" placeholder="Task title" />
 								<textarea bind:value={editingTask.description} class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-xs mb-1.5 text-white focus:outline-none focus:ring-1 focus:ring-gray-400 resize-none" placeholder="Description" rows="2" />
+								<div class="grid grid-cols-2 gap-1.5 mb-1.5">
+									<select bind:value={editingTask.priority} class="h-7 px-2 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-gray-400">
+										<option value="low">Low</option>
+										<option value="medium">Medium</option>
+										<option value="high">High</option>
+									</select>
+									<select bind:value={editingTask.status} class="h-7 px-2 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-gray-400">
+										<option value="todo">To Do</option>
+										<option value="in-progress">In Progress</option>
+										<option value="done">Done</option>
+									</select>
+								</div>
+								<input type="date" bind:value={editingTask.due_date} class="w-full h-7 px-2 bg-gray-700 border border-gray-600 rounded text-xs text-white mb-1.5 focus:outline-none focus:ring-1 focus:ring-gray-400" />
+								<input type="text" bind:value={editingTask.tags} placeholder="Tags (comma separated)" class="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded mb-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-400" />
 								<div class="flex gap-1.5">
 									<button onclick={handleSaveEditedTask} class="flex-1 bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-500 font-medium">Save</button>
 									<button onclick={cancelEditTask} class="flex-1 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-600">Cancel</button>
